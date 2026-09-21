@@ -230,7 +230,7 @@
   <div class="wrap">
     <div class="hero">
       <h1>制造企业综合公式计算器</h1>
-      <p><b>v4.3（2026-09-21）研发栏新增「反推经费」：</b>把成功率公式反解成<b>要投多少钱</b> —— 目标是「区间下限 ≥ 100%（保底）」时需 <b>1.75 倍推荐资金</b>，目标是「区间上限 ≥ 100%（把握）」时需 <b>1.5 倍推荐资金</b>（多招人可少投钱）。新增两个带入按钮，并补上客户课程 PPT 的研发前置依赖提示。<br><b>v4.2（2026-09-21）移除「兼容判定」下拉框：</b>水平差为 0 时系统按 0.5 倍产能计算是<b>平台规则、不是可选项</b>，留着"按 0（仅作对照）"会让人误以为有两个口径，故固定按 0.5×产能。默认路径计算结果与 v4.1 完全一致。<br><b>v4.1（2026-09-21）修正「差值为 0」的行为：</b>平台规则 PDF 第 10 页注明确"技术水平 − 工艺水平 = 0 时，<b>系统以 0.5 计算</b>"。⚠️ 水平差为 0 的组合（如 半自动+Oa、全自动/柔性+Sa）产量<b>由此确定</b>。<br><b>v4.0（2026-09-21）选完产线/产品自动带入最优配置：</b>计划生产数量默认= <b>理论最大产量</b>，并自动带入最优人员配备与工资；实际产能按规则<b>封顶于该线最大产能</b>（新增「实际产能（封顶后）」指标，会提示"同产能可省 N/季"或"未拉满"）。<br><b>v3.0</b>：新增「参数方案」（默认手册 4000/6000/8000/10000、江汉大学 202609、自定义）与「产品经济性对比」自动选品。<br><b>v2.1 / v2.0</b>：最优人员配备改为公式反推；研发成功率公式与库存成本按手册修正。<br>已集成：厂区扩建、生产、吞吐量、研发、广告、贷款/现金流、市场需求。未集成：价格评分（竞单定价）。</p>
+      <p><b>v4.4（2026-09-21）新增「竞单」标签页：</b>补齐最后一个未集成模块 —— <b>竞单定价</b>。由「对手要超过的分数 + 我方市场影响力/认证/永久占有分」反推<b>能报的最高价</b>。公式取自 <code>竞价说明.xlsx</code> 的 E 列正版公式并经 4 组实测数据校验；标底价跟随「参数方案」自动带出。<br><b>v4.3（2026-09-21）研发栏新增「反推经费」：</b>把成功率公式反解成<b>要投多少钱</b> —— 目标是「区间下限 ≥ 100%（保底）」时需 <b>1.75 倍推荐资金</b>，目标是「区间上限 ≥ 100%（把握）」时需 <b>1.5 倍推荐资金</b>（多招人可少投钱）。新增两个带入按钮，并补上客户课程 PPT 的研发前置依赖提示。<br><b>v4.2（2026-09-21）移除「兼容判定」下拉框：</b>水平差为 0 时系统按 0.5 倍产能计算是<b>平台规则、不是可选项</b>，留着"按 0（仅作对照）"会让人误以为有两个口径，故固定按 0.5×产能。默认路径计算结果与 v4.1 完全一致。<br><b>v4.1（2026-09-21）修正「差值为 0」的行为：</b>平台规则 PDF 第 10 页注明确"技术水平 − 工艺水平 = 0 时，<b>系统以 0.5 计算</b>"。⚠️ 水平差为 0 的组合（如 半自动+Oa、全自动/柔性+Sa）产量<b>由此确定</b>。<br><b>v4.0（2026-09-21）选完产线/产品自动带入最优配置：</b>计划生产数量默认= <b>理论最大产量</b>，并自动带入最优人员配备与工资；实际产能按规则<b>封顶于该线最大产能</b>（新增「实际产能（封顶后）」指标，会提示"同产能可省 N/季"或"未拉满"）。<br><b>v3.0</b>：新增「参数方案」（默认手册 4000/6000/8000/10000、江汉大学 202609、自定义）与「产品经济性对比」自动选品。<br><b>v2.1 / v2.0</b>：最优人员配备改为公式反推；研发成功率公式与库存成本按手册修正。<br>已集成：厂区扩建、生产、吞吐量、研发、广告、贷款/现金流、市场需求。未集成：价格评分（竞单定价）。</p>
     </div>
 
     <div class="toolbar">
@@ -287,6 +287,7 @@
       <button class="tab-btn" data-tab="ad">广告</button>
       <button class="tab-btn" data-tab="finance">财务</button>
       <button class="tab-btn" data-tab="market">市场</button>
+      <button class="tab-btn" data-tab="bid">竞单</button>
     </div>
 
     <section class="panel active" id="expand">
@@ -926,6 +927,66 @@
         </div>
       </div>
     </section>
+
+    <section class="panel" id="bid">
+      <div class="card">
+        <h2>竞单定价</h2>
+        <div class="subtle">竞单只比总分，总分最高的拿走订单。四个分项里只有<b>价格分</b>由咱们的报价决定，其余三项这一期是固定值 ——
+          所以定价的本质是：<b>在「总分刚好超过对手」的前提下，把价格报到尽可能高。</b><br>
+          <b>评分规则</b>（客户课程 PPT）：最终得分 = 市场影响力分 + 价格分 + 认证分 + 永久占有加分；
+          价格<b>每高于标底价 1% → −10 分</b>，<b>每低于标底价 1% → +2 分</b>（标底价 = 该产品型号的售价，1% 即步长）。<br>
+          <b>取整方式</b>：由 <code>竞价说明.xlsx</code> 的 E 列公式 <code>ROUND(-((报价-标底价)/步长)*10, -1)</code> 与 4 组实测数据确认 ——
+          <b>按「半个步长」取整</b>（如标底 4000、步长 40，则 4739 仍是 18 档、4740 跳到 19 档）。本页按此边界取最高价。<br>
+          「还需净胜」为正说明降价加分才追得上，为负说明可以涨价；「校验」显示 <b>可拿下</b> = 这套报价严格超过对手，
+          <b>分数不够</b> = 需要的价格分超过满分 100（这个单抢不到），<b>报价为负</b> = 降到底也不够。</div>
+        <div class="section-split">
+          <div>
+            <div class="grid-3">
+              <div>
+                <label>产品型号</label>
+                <select id="bidProduct"></select>
+              </div>
+              <div>
+                <label>标底价（该型号售价，自动带出）</label>
+                <input id="bidBasePrice" type="text" readonly />
+              </div>
+              <div>
+                <label>1% 步长（自动带出）</label>
+                <input id="bidStep" type="text" readonly />
+              </div>
+              <div>
+                <label>对手最终得分（要超过的分）</label>
+                <input id="bidOppScore" type="number" value="0" step="1" />
+              </div>
+              <div>
+                <label>我方市场影响力得分</label>
+                <input id="bidMarketScore" type="number" value="100" step="1" />
+              </div>
+              <div>
+                <label>我方认证分</label>
+                <input id="bidCertScore" type="number" value="0" step="1" />
+              </div>
+              <div>
+                <label>我方永久占有加分</label>
+                <input id="bidPermScore" type="number" value="30" step="1" />
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="result-box" style="margin-top:0;">
+              <div class="metric"><div class="k">我方非价格分</div><div class="v" id="bidOurFixed">0</div></div>
+              <div class="metric"><div class="k">还需净胜<br><span style="font-weight:400;">正=要加分</span></div><div class="v" id="bidNeed">0</div></div>
+              <div class="metric" id="metricBidDirection"><div class="k">报价方向</div><div class="v" id="bidDirection">-</div></div>
+              <div class="metric" id="metricBidPriceScore"><div class="k">价格分</div><div class="v" id="bidPriceScore">0</div></div>
+              <div class="metric" id="metricBidOptimal"><div class="k">最优售价</div><div class="v" id="bidOptimalPrice">0</div></div>
+              <div class="metric"><div class="k">我方最终得分</div><div class="v" id="bidOurFinal">0</div></div>
+              <div class="metric" id="metricBidJudge"><div class="k">校验</div><div class="v" id="bidJudge">-</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
   </div>
 
   <script>
@@ -1173,12 +1234,14 @@
       fillSelect('rndProjectSelect', Object.keys(RND_PROJECTS), x => ({ value: x, label: `${x}｜${RND_PROJECTS[x].code}` }));
       fillSelect('adType', Object.keys(AD_CHANNELS), x => ({ value: x, label: x }));
       fillSelect('adOpenMarket', Object.keys(AD_MARKETS), x => ({ value: x, label: x }));
+      fillSelect('bidProduct', ['L', 'H', 'O', 'S'], x => ({ value: x, label: `${x} 型` }));
       initAdMarketChoices();
       syncProductionOptimal();
       syncThroughputPreset();
       syncThroughputGoods();
       syncRndProject();
       syncAdTypeMeta();
+      syncBidProduct();
     }
 
     function initThroughputGoodsSelect() {
@@ -1579,6 +1642,81 @@
       setState('rndJudge', state);
     }
 
+    // ── 竞单定价：反推「能报的最高价」────────────────────────────────
+    // 最终得分 = 市场影响力分 + 价格分 + 认证分 + 永久占有加分，总分最高者得单。
+    // 四个分项里只有「价格分」由报价决定，其余三项当期是固定值 S。
+    //   价格高于标底价每 1% → −10 分；低于每 1% → +2 分；步长 step = 标底价 × 1%
+    // 记 D = 对手得分 + 1 − S（要净胜的分数）：
+    //   D ≤ 0（已领先）：可以涨价。每吃 1 档扣 10 分，最多吃 N = floor(|D| / 10) 档。
+    //   D > 0（落后）：  必须降价。每降 1 档加 2 分，至少降 M = ceil(D / 2) 档。
+    // 取整边界：价格分在「半个步长」处跳档（由 竞价说明.xlsx 的 ROUND(...,-1) 公式
+    // 与 4739/4740 实测确认）。所以两种情况都取「两种取整模型下都安全」的价格：
+    //   涨价——最高价落在 base + (N+0.5)×step 之下（再高 1 元就多扣 10 分）
+    //   降价——取整档 base − M×step（再高半档在 floor 模型下会少 2 分而落败）
+    function syncBidProduct() {
+      const base = PRICES[$('bidProduct').value] || 0;
+      $('bidBasePrice').value = base ? fmt(base) : '-';
+      $('bidStep').value = base ? fmt(base * 0.01) : '-';
+      calcBid();
+    }
+
+    function calcBid() {
+      const base = PRICES[$('bidProduct').value] || 0;
+      const step = base * 0.01;
+      const market = num('bidMarketScore');
+      const cert = num('bidCertScore');
+      const perm = num('bidPermScore');
+      const opp = num('bidOppScore');
+
+      const S = market + cert + perm;
+      const D = opp + 1 - S;
+      setText('bidOurFixed', fmt(S));
+      setText('bidNeed', fmt(D));
+
+      if (step <= 0) {
+        ['bidDirection', 'bidPriceScore', 'bidOptimalPrice', 'bidOurFinal'].forEach(id => setText(id, '-'));
+        setText('bidJudge', '该型号无售价，先在「参数方案」里设置');
+        setState('bidJudge', 'warn');
+        return;
+      }
+
+      let priceScore, optimalPrice, direction, note;
+      if (D <= 0) {
+        // 已领先：涨价换利润，最多吃到 N 档扣分
+        const N = Math.floor(Math.abs(D) / 10);
+        priceScore = -10 * N;
+        optimalPrice = Math.ceil(base + (N + 0.5) * step) - 1;
+        direction = N > 0 ? `提价 ${N} 档` : '按标底价';
+      } else {
+        // 落后：降价换价格分
+        const M = Math.ceil(D / 2);
+        priceScore = 2 * M;
+        optimalPrice = Math.floor(base - M * step);
+        direction = `降价 ${M} 档`;
+        if (M > 50) note = '降价档数已超过价格分满分 100 的上限，可能补不回来';
+      }
+
+      const finalScore = S + priceScore;
+      setText('bidDirection', direction);
+      setText('bidPriceScore', fmt(priceScore));
+      setText('bidOptimalPrice', optimalPrice > 0 ? fmt(optimalPrice) : '报价已为负，不可行');
+      setText('bidOurFinal', fmt(finalScore));
+
+      // 校验：最终得分必须严格大于对手
+      const win = finalScore > opp;
+      let judge = win ? '可拿下' : '不达标';
+      if (optimalPrice <= 0) judge = '报价为负';
+      else if (note) judge = '分数不够';
+      setText('bidJudge', judge);
+
+      const state = optimalPrice <= 0 || note ? 'bad' : (win ? 'good' : 'bad');
+      setState('bidJudge', state);
+      setMetricState('metricBidJudge', state);
+      setMetricState('metricBidOptimal', state);
+      setMetricState('metricBidPriceScore', priceScore < 0 ? 'good' : (priceScore > 0 ? 'warn' : 'warn'));
+      setMetricState('metricBidDirection', D <= 0 ? 'good' : 'warn');
+    }
+
     function applyRndFund(kind) {
       const val = lastRndFund[kind];
       if (val == null) return;
@@ -1863,6 +2001,8 @@
       bindInputs(['cashBegin1', 'cashBegin2', 'cashBegin3', 'cashBegin4', 'cashIn1', 'cashIn2', 'cashIn3', 'cashIn4', 'cashOut1', 'cashOut2', 'cashOut3', 'cashOut4', 'cashLoanIn1', 'cashLoanIn2', 'cashLoanIn3', 'cashLoanIn4', 'cashLoanOut1', 'cashLoanOut2', 'cashLoanOut3', 'cashLoanOut4', 'cashTax1', 'cashTax2', 'cashTax3', 'cashTax4'], calcCashflow);
       bindInputs(['marketSelfInvest', 'marketTotalInvest', 'demandLastOutput', 'demandLocalRatio', 'demandLocalAd', 'demandTotalAd', 'demandBoomFactor'], calcMarket);
       bindInputs(['localNeedTotalOutput', 'localNeedRatio', 'localNeedShare'], calcLocalDemand);
+      bindInputs(['bidProduct'], syncBidProduct);
+      bindInputs(['bidOppScore', 'bidMarketScore', 'bidCertScore', 'bidPermScore'], calcBid);
     }
 
     function recalcAll() {
@@ -1876,6 +2016,7 @@
       calcCashflow();
       calcMarket();
       calcLocalDemand();
+      syncBidProduct();
     }
 
     function printPage() { window.print(); }
