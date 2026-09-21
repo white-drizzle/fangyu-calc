@@ -1,0 +1,1837 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>制造企业综合公式计算器</title>
+  <style>
+    :root {
+      --bg: #f6f8fb;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --line: #d8e0ea;
+      --primary: #2563eb;
+      --ok: #059669;
+      --danger: #dc2626;
+      --warn: #d97706;
+      --shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .wrap {
+      max-width: 1180px;
+      margin: 28px auto;
+      padding: 0 16px 32px;
+    }
+
+    .hero { margin-bottom: 16px; }
+    .hero h1 { margin: 0 0 8px; font-size: 30px; }
+    .hero p { margin: 0; color: var(--muted); line-height: 1.75; }
+
+    .toolbar,
+    .tabs,
+    .action-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .toolbar { margin: 16px 0 10px; }
+    .tabs { margin: 18px 0; }
+    .action-row { margin-top: 12px; }
+
+    .tab-btn,
+    .btn {
+      width: auto;
+      border-radius: 999px;
+      padding: 10px 16px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .tab-btn {
+      border: 1px solid var(--line);
+      background: white;
+      color: var(--text);
+    }
+
+    .tab-btn.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .btn {
+      border: 1px solid var(--primary);
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-secondary {
+      background: white;
+      color: var(--text);
+      border-color: var(--line);
+    }
+
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      padding: 18px;
+      margin-bottom: 16px;
+    }
+
+    .card h2 { margin: 0 0 10px; font-size: 21px; }
+    .card h3 { margin: 0 0 8px; font-size: 16px; }
+    .subtle { color: var(--muted); font-size: 14px; line-height: 1.7; margin-bottom: 14px; }
+
+    .grid-2,
+    .grid-3,
+    .grid-4,
+    .result-box,
+    .check-grid {
+      display: grid;
+      gap: 14px;
+    }
+
+    .grid-2 { grid-template-columns: repeat(2, 1fr); }
+    .grid-3 { grid-template-columns: repeat(3, 1fr); }
+    .grid-4 { grid-template-columns: repeat(4, 1fr); }
+    .result-box { grid-template-columns: repeat(4, 1fr); margin-top: 14px; }
+    .check-grid { grid-template-columns: repeat(4, 1fr); gap: 10px; }
+
+    .section-split {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 16px;
+      align-items: start;
+    }
+
+    label {
+      display: block;
+      font-size: 14px;
+      margin-bottom: 6px;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    input, select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 15px;
+      background: white;
+    }
+
+    input:focus, select:focus {
+      outline: 2px solid rgba(37, 99, 235, 0.16);
+      border-color: var(--primary);
+    }
+
+    .metric {
+      background: #f8fafc;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px;
+      transition: 0.2s ease;
+    }
+
+    .metric.good { background: #f0fdf4; border-color: #bbf7d0; }
+    .metric.bad { background: #fef2f2; border-color: #fecaca; }
+    .metric.warnbox { background: #fffbeb; border-color: #fde68a; }
+    .metric .k { font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+    .metric .v { font-size: 24px; font-weight: 800; word-break: break-word; }
+
+    .state-good { color: var(--ok); }
+    .state-bad { color: var(--danger); }
+    .state-warn { color: var(--warn); }
+
+    .formula {
+      margin-top: 14px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      font-size: 14px;
+      line-height: 1.75;
+    }
+
+    .check-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px 12px;
+      background: white;
+    }
+
+    .check-item input { width: auto; margin: 0; }
+
+    .table-wrap { overflow-x: auto; margin-top: 14px; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    th, td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      text-align: center;
+      font-size: 14px;
+    }
+    th { background: #f8fafc; font-weight: 700; }
+    tr:last-child td { border-bottom: none; }
+
+    .mini-note {
+      margin-top: 10px;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    @media (max-width: 1024px) {
+      .grid-4, .result-box, .check-grid, .section-split { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 720px) {
+      .grid-4, .grid-3, .grid-2, .result-box, .check-grid, .section-split { grid-template-columns: 1fr; }
+      .tab-btn, .btn { width: 100%; }
+    }
+
+    @media print {
+      body { background: white; }
+      .wrap { max-width: none; margin: 0; padding: 0; }
+      .tabs, .toolbar, .action-row, button { display: none !important; }
+      .panel { display: block !important; }
+      .card { box-shadow: none; break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="hero">
+      <h1>制造企业综合公式计算器</h1>
+      <p><b>v4.2（2026-09-21）移除「兼容判定」下拉框：</b>水平差为 0 时系统按 0.5 倍产能计算是<b>平台规则、不是可选项</b>，留着"按 0（仅作对照）"会让人误以为有两个口径，故固定按 0.5×产能。默认路径计算结果与 v4.1 完全一致。<br><b>v4.1（2026-09-21）修正「差值为 0」的行为：</b>平台规则 PDF 第 10 页注明确"技术水平 − 工艺水平 = 0 时，<b>系统以 0.5 计算</b>"。⚠️ 水平差为 0 的组合（如 半自动+Oa、全自动/柔性+Sa）产量<b>由此确定</b>。<br><b>v4.0（2026-09-21）选完产线/产品自动带入最优配置：</b>计划生产数量默认= <b>理论最大产量</b>，并自动带入最优人员配备与工资；实际产能按规则<b>封顶于该线最大产能</b>（新增「实际产能（封顶后）」指标，会提示"同产能可省 N/季"或"未拉满"）。<br><b>v3.0</b>：新增「参数方案」（默认手册 4000/6000/8000/10000、江汉大学 202609、自定义）与「产品经济性对比」自动选品。<br><b>v2.1 / v2.0</b>：最优人员配备改为公式反推；研发成功率公式与库存成本按手册修正。<br>已集成：厂区扩建、生产、吞吐量、研发、广告、贷款/现金流、市场需求。未集成：价格评分（竞单定价）。</p>
+    </div>
+
+    <div class="toolbar">
+      <button class="btn btn-secondary" onclick="recalcAll()">全部重算</button>
+      <button class="btn btn-secondary" onclick="printPage()">打印 / 导出 PDF</button>
+    </div>
+
+    <div class="card" style="margin-top:16px;margin-bottom:0;">
+      <h2>参数方案</h2>
+      <div class="subtle">本方案影响<b>产品市场售价</b>与<b>M2 单价</b>；切换或修改后<b>所有页面自动重算</b>。<br>
+        工艺水平<b>不随方案变化</b> —— 软件手册与客户课程 PPT 两份来源一致（Lb=0、Sa=4、Sb=3），Excel 原有的 1/3/2 是错的。<br>
+        选「自定义」时下面 5 个输入框可编辑，用于试算你所在学校的实际参数。</div>
+      <div class="grid-4">
+        <div style="grid-column: span 2;">
+          <label>参数方案</label>
+          <select id="paramProfile">
+            <option value="manual">默认（软件手册 2.0/3.0）　L4000 / H6000 / O8000 / S10000</option>
+            <option value="jhdx">江汉大学（202609）　L4000 / H8000 / O10000 / S12000</option>
+            <option value="custom">自定义（下方输入）</option>
+          </select>
+        </div>
+        <div>
+          <label>L 型售价</label>
+          <input id="priceL" type="number" value="4000" step="1" min="0" disabled />
+        </div>
+        <div>
+          <label>H 型售价</label>
+          <input id="priceH" type="number" value="6000" step="1" min="0" disabled />
+        </div>
+        <div>
+          <label>O 型售价</label>
+          <input id="priceO" type="number" value="8000" step="1" min="0" disabled />
+        </div>
+        <div>
+          <label>S 型售价</label>
+          <input id="priceS" type="number" value="10000" step="1" min="0" disabled />
+        </div>
+        <div>
+          <label>M2 单价（M1/M3 不随方案变）</label>
+          <input id="priceM2" type="number" value="600" step="1" min="0" disabled />
+        </div>
+        <div style="grid-column: span 2;">
+          <label>当前生效</label>
+          <input id="profileActive" type="text" readonly />
+        </div>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="expand">建厂</button>
+      <button class="tab-btn" data-tab="production">生产</button>
+      <button class="tab-btn" data-tab="throughput">仓储</button>
+      <button class="tab-btn" data-tab="rnd">研发</button>
+      <button class="tab-btn" data-tab="ad">广告</button>
+      <button class="tab-btn" data-tab="finance">财务</button>
+      <button class="tab-btn" data-tab="market">市场</button>
+    </div>
+
+    <section class="panel active" id="expand">
+      <div class="card">
+        <h2>厂区扩建</h2>
+        <div class="subtle">保留这一块单独存在，因为它本身已经很简洁，没有明显重复。</div>
+        <div class="grid-3">
+          <div>
+            <label>厂区现有面积</label>
+            <input id="expandCurrentArea" type="number" value="1000" step="0.01" min="0" />
+          </div>
+          <div>
+            <label>已扩建次数</label>
+            <input id="expandCount" type="number" value="0" step="1" min="0" />
+          </div>
+          <div>
+            <label>土地价格（元/m²）</label>
+            <input id="expandLandPrice" type="number" value="1000" step="0.01" min="0" />
+          </div>
+        </div>
+        <div class="result-box">
+          <div class="metric"><div class="k">每次扩建面积</div><div class="v" id="expandAreaResult">0</div></div>
+          <div class="metric"><div class="k">每次扩建金额</div><div class="v" id="expandCostResult">0</div></div>
+          <div class="metric"><div class="k">扩建后总面积</div><div class="v" id="expandNewAreaResult">0</div></div>
+          <div class="metric"><div class="k">说明</div><div class="v" id="expandStatus">-</div></div>
+        </div>
+        <div class="formula">
+          每次扩建面积 = 厂区现有面积 / (已扩建次数 + 1)²<br>
+          每次扩建金额 = 每次扩建面积 × 土地价格
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="production">
+      <div class="card">
+        <h2>生产主控台</h2>
+        <div class="subtle">把“生产线兼容判断 + 人员细化产量 + 成本与毛利润”合并到一张卡里。现在你只需要围绕一组生产线/产品/人数来填。</div>
+        <div class="section-split">
+          <div>
+            <div class="grid-4">
+              <div>
+                <label>生产线</label>
+                <select id="prodLine"></select>
+              </div>
+              <div>
+                <label>产品 / 工艺</label>
+                <select id="prodProduct"></select>
+              </div>
+              <div>
+                <label>计划生产数量</label>
+                <input id="prodQty" type="number" value="1000" step="1" min="0" />
+              </div>
+              <div>
+                <label>初级工人数</label>
+                <input id="prodJuniorCount" type="number" value="0" step="1" min="0" />
+              </div>
+              <div>
+                <label>高级工人数</label>
+                <input id="prodSeniorCount" type="number" value="10" step="1" min="0" />
+              </div>
+              <div>
+                <label>管理人数</label>
+                <input id="prodManagerCount" type="number" value="1" step="1" min="0" />
+              </div>
+              <div>
+                <label>人员利用率</label>
+                <input id="prodUtilization" type="number" value="1" step="0.01" min="0" />
+              </div>
+              <div>
+                <label>初级工专业能力</label>
+                <input id="prodJuniorAbility" type="number" value="10" step="0.01" />
+              </div>
+              <div>
+                <label>高级工专业能力</label>
+                <input id="prodSeniorAbility" type="number" value="20" step="0.01" />
+              </div>
+              <div>
+                <label>管理能力（如 0.25）</label>
+                <input id="prodManagerAbility" type="number" value="0.25" step="0.01" />
+              </div>
+              <div>
+                <label>当季人工工资</label>
+                <input id="prodLaborCost" type="number" value="90000" step="0.01" min="0" />
+              </div>
+              <div>
+                <label>期末库存数量（件）</label>
+                <input id="prodStockQty" type="number" value="0" step="1" min="0" />
+              </div>
+              <div>
+                <label>单位库存成本（元/件·季）</label>
+                <input id="prodStockRate" type="number" value="150" step="0.01" min="0" />
+              </div>
+            </div>
+            <div class="action-row">
+              <button class="btn btn-secondary" onclick="syncStaffToProduction()">从“人员配置”带入人数</button>
+              <button class="btn btn-secondary" onclick="applyOptimalStaffing()">按公式反推最优配备</button>
+            </div>
+          </div>
+
+          <div>
+            <div class="result-box" style="margin-top:0;">
+              <div class="metric" id="metricProdStatus"><div class="k">生产判定</div><div class="v" id="prodStatus">-</div></div>
+              <div class="metric"><div class="k">水平差</div><div class="v" id="prodGap">0</div></div>
+              <div class="metric"><div class="k">理论最大产量</div><div class="v" id="prodMaxOutput">0</div></div>
+              <div class="metric"><div class="k">人员细化产量</div><div class="v" id="prodDetailedOutput">0</div></div>
+              <div class="metric" id="metricProdCapacity"><div class="k">实际产能（封顶后）</div><div class="v" id="prodCapacity">0</div></div>
+              <div class="metric"><div class="k">材料成本</div><div class="v" id="prodMaterialCost">0</div></div>
+              <div class="metric"><div class="k">库存持有成本</div><div class="v" id="prodStockCost">0</div></div>
+              <div class="metric"><div class="k">总成本</div><div class="v" id="prodTotalCost">0</div></div>
+              <div class="metric"><div class="k">单位售价</div><div class="v" id="prodUnitPrice">0</div></div>
+              <div class="metric" id="metricProdUnitGross"><div class="k">单位毛利润</div><div class="v" id="prodUnitGross">0</div></div>
+              <div class="metric" id="metricProdGross"><div class="k">总毛利润</div><div class="v" id="prodGross">0</div></div>
+              <div class="metric" id="metricProdQtyCheck"><div class="k">计划量是否超理论上限</div><div class="v" id="prodQtyCheck">-</div></div>
+              <div class="metric"><div class="k">线体技术水平</div><div class="v" id="prodLineTech">0</div></div>
+              <div class="metric"><div class="k">产品工艺水平</div><div class="v" id="prodProductProcess">0</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="formula">
+          <b>选完生产线或产品会自动带入最优配置</b>：① 计划生产数量 = <b>理论最大产量</b>；② 最优人员配备 + 相应工资；③ 人员利用率随产线。之后仍可手动改任意一项，再切产线/产品会重新带回最优基线。<br>
+          <b>⚠️ 注意「产能」与「产量」是两个概念</b>（平台规则 §2.1）：<br>
+          · <b>产能</b> =（初级工能力×人数 + 高级工能力×人数）×（1 + 管理能力×人数）× 人员利用率，且<b>封顶于该线最大产能</b>（"产能提高到最大产能时不再增加"）。<br>
+          · <b>产量</b> =（线体技术水平 − 产品工艺水平）× 产能。配备最优时产能拉满，产量 = 水平差 × 最大产能。<br>
+          · <b>差值 = 0 时系统按 0.5 计算</b>（平台规则第 10 页注），故默认取「按 0.5×产能」；差值 &lt; 0 则无法生产。<br>
+          总成本 = 材料成本 + 当季人工工资 + 库存持有成本；毛利润 =（单位售价 - 单位成本）×计划生产数量<br>
+          库存持有成本 = 期末库存数量 × 单位库存成本。（手册 §2.5 / §3.1：按<b>期末库存数量</b>计算、<b>下一期支付</b>；产成品 L型 100 元/件·季、H/O/S 型 150 元/件·季，原材料 50 元/件）<br>
+          <b>最优人员配备由公式反推</b>，不再依赖手抄表：在「产能 =（初级能力×人数 + 高级能力×人数）×(1 + 管理能力×人数)×人员使用率」达到该线<b>最大产能</b>的前提下，取<b>工资最低</b>的整数组合（手册 §2.1 第 4 条：产能达上限后不再增加，故超额配备只是白付工资）。点「按公式反推最优配备」会同时带入<b>人数</b>与<b>当季人工工资</b>（工资 = 初级×4000 + 高级×6000 + 管理×5000）。<br>
+          反推结果：劳动密集型 <b>1/12/12</b>（工资 136,000）、半自动 <b>0/10/6</b>（90,000）、全自动 <b>1/2/0</b>（16,000）、柔性 <b>1/4/2</b>（38,000）、半自动v2 <b>0/10/6</b>（90,000）、半自动v3-技术提升1次 <b>0/10/6</b>（90,000）。<br>
+          <span style="color:#6b7280">与 Excel「最优人员配备区」对照：半自动、半自动v2 <b>完全吻合</b>；全自动 Excel 记 0/1.8/1（15,800，1.8 人非整数，且固定了管理=1），反推的整数最优是 <b>1/2/0（16,000）</b>，比按 2 人算的 0/2/1（17,000）更省；柔性、劳动密集型、半自动v3 在 Excel 中为空白，本页已可反推。</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>人员配置与费用</h2>
+        <div class="subtle">把“招聘费用 + 下一期工资 + 总提升产能 + 总提升研发能力”合并到一张卡。你先在这里配人，再一键带入生产和研发。</div>
+        <div class="grid-4">
+          <div>
+            <label>初级工人数</label>
+            <input id="staffJuniorCount" type="number" value="0" step="1" min="0" />
+          </div>
+          <div>
+            <label>高级工人数</label>
+            <input id="staffSeniorCount" type="number" value="10" step="1" min="0" />
+          </div>
+          <div>
+            <label>车间管理人数</label>
+            <input id="staffManagerCount" type="number" value="6" step="1" min="0" />
+          </div>
+          <div>
+            <label>研发人数</label>
+            <input id="staffResearchCount" type="number" value="15" step="1" min="0" />
+          </div>
+        </div>
+        <div class="result-box">
+          <div class="metric"><div class="k">招聘费用</div><div class="v" id="staffRecruitCost">0</div></div>
+          <div class="metric"><div class="k">下一期工资</div><div class="v" id="staffNextWage">0</div></div>
+          <div class="metric"><div class="k">总人数</div><div class="v" id="staffTotalPeople">0</div></div>
+          <div class="metric"><div class="k">总提升产能</div><div class="v" id="staffCapacityBoost">0</div></div>
+          <div class="metric"><div class="k">总提升研发能力</div><div class="v" id="staffResearchAbility">0</div></div>
+          <div class="metric" id="metricStaffResearchJudge"><div class="k">研发 100 门槛</div><div class="v" id="staffResearchJudge">-</div></div>
+        </div>
+        <div class="action-row">
+          <button class="btn btn-secondary" onclick="syncStaffToProduction()">带入生产主控台</button>
+          <button class="btn btn-secondary" onclick="syncStaffToRnd()">带入研发主控台</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>产品经济性对比（自动）</h2>
+        <div class="subtle">随上方「<b>参数方案</b>」自动重算，用于选品。<br>
+          单位毛利 = 单位售价 − 单位材料成本（人工按季计、与产量挂钩，故不摊进单价，便于横向比较）。<br>
+          「所需最低线体技术」= 工艺水平 + 1（产量 =（线体技术水平 − 工艺水平）× 产能，差值须为正才能产出）。</div>
+        <div class="result-box">
+          <div class="metric good"><div class="k">单位毛利最优工艺清单</div><div class="v" id="prodCompareBest">-</div></div>
+          <div class="metric"><div class="k">单位毛利次优</div><div class="v" id="prodCompareSecond">-</div></div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>代号</th><th>工艺清单</th><th>工艺水平</th><th>所需最低线体技术</th>
+                <th>单位材料成本</th><th>单位售价</th><th>单位毛利</th><th>毛利率</th><th>排序</th>
+              </tr>
+            </thead>
+            <tbody id="prodCompareBody"><tr><td colspan="9">暂无结果</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="throughput">
+      <div class="card">
+        <h2>仓库 / 吞吐量主控台</h2>
+        <div class="subtle">这里把吞吐量单独收成一页，但保持最短路径：选仓库、快捷选择货物、自动带出体积、填数量、勾选入/出库，再看本次消耗、累计消耗和剩余吞吐量。你仍然可以手动修改体积。</div>
+        <div class="section-split">
+          <div>
+            <div class="grid-4">
+              <div>
+                <label>仓库类型</label>
+                <select id="thrWarehouseType"></select>
+              </div>
+              <div>
+                <label>本季度最大吞吐量</label>
+                <input id="thrMaxThroughput" type="number" value="30000" step="1" min="0" />
+              </div>
+              <div>
+                <label>货物快捷选择</label>
+                <select id="thrGoodsSelect"></select>
+              </div>
+              <div>
+                <label>货物名称</label>
+                <input id="thrGoodsName" type="text" value="M1" />
+              </div>
+              <div>
+                <label>单件体积 / 单件吞吐量</label>
+                <input id="thrVolume" type="number" value="1" step="0.01" min="0" />
+              </div>
+              <div>
+                <label>数量</label>
+                <input id="thrQty" type="number" value="1000" step="1" min="0" />
+              </div>
+              <div>
+                <label>本季度已消耗吞吐量</label>
+                <input id="thrUsed" type="number" value="0" step="1" min="0" />
+              </div>
+              <div>
+                <label>入库</label>
+                <label class="check-item"><input id="thrInbound" type="checkbox" checked /> 本次包含入库</label>
+              </div>
+              <div>
+                <label>出库</label>
+                <label class="check-item"><input id="thrOutbound" type="checkbox" /> 本次包含出库</label>
+              </div>
+            </div>
+            <div class="action-row">
+              <button class="btn btn-secondary" onclick="addThroughputUsage()">将本次消耗加入累计</button>
+              <button class="btn btn-secondary" onclick="resetThroughputUsed()">累计清零</button>
+            </div>
+            <div class="mini-note">规则：本次吞吐量消耗 = 数量 × 单件体积 × 操作次数。仅入库 = 1，仅出库 = 1，同时入库+出库 = 2。货物下拉已按“原材料 / 产成品 / 自定义”分组。</div>
+          </div>
+
+          <div>
+            <div class="result-box" style="margin-top:0;">
+              <div class="metric"><div class="k">操作次数</div><div class="v" id="thrOps">0</div></div>
+              <div class="metric"><div class="k">本次消耗</div><div class="v" id="thrCurrentCost">0</div></div>
+              <div class="metric"><div class="k">累计消耗</div><div class="v" id="thrTotalUsed">0</div></div>
+              <div class="metric"><div class="k">剩余吞吐量</div><div class="v" id="thrRemaining">0</div></div>
+              <div class="metric" id="metricThrStatus"><div class="k">执行状态</div><div class="v" id="thrStatus">-</div></div>
+              <div class="metric"><div class="k">当前货物</div><div class="v" id="thrGoodsLabel">-</div></div>
+              <div class="metric"><div class="k">本次操作</div><div class="v" id="thrOpLabel">-</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="rnd">
+      <div class="card">
+        <h2>研发主控台</h2>
+        <div class="subtle">把“项目自动带参 + 成功率区间 + 研发能力判断”收成一张卡。项目选好后，严格按你提供的表带出：基本研发能力要求、基础资金、推荐资金、最少研发资金、BOM、工艺水平。<br><b>研发成功率公式已按《跨专业软件使用说明（3.0）》第 2.2 节修正为：</b>（有效研发资金 ÷ <b>推荐资金</b> × 80% ＋（研发能力 − 基本研发能力要求）÷ 100 × 20%）−（20%至40%）；成功率区间 = [结果 − 40%, 结果 − 20%]。<br>手册原文另有两条硬规则：<b>①</b> 每次投入的研发资金和人员<b>不得少于</b>推荐资金和基本研发能力要求，否则下季度一定不成功；<b>②</b> 成功率落在 <b>100%~120%</b> 区间时，下期肯定研发成功。<br>推荐研发人数仅在“基本研发能力要求”有值时才计算；像 L型产品研发这类表内为空的项目，不做推荐。<br><b>注：</b>手册表 6 只有「能力要求 / 最少投放资金 / 推荐资金」三列，<b>没有「基础资金」</b>；本页仍显示它仅供对照，不参与计算。</div>
+        <div class="section-split">
+          <div>
+            <div class="grid-3">
+              <div>
+                <label>研发项目</label>
+                <select id="rndProjectSelect"></select>
+              </div>
+              <div>
+                <label>项目代号</label>
+                <input id="rndProjectCode" type="text" readonly />
+              </div>
+              <div>
+                <label>工艺水平</label>
+                <input id="rndProjectLevel" type="text" readonly />
+              </div>
+              <div>
+                <label>基本研发能力要求</label>
+                <input id="rndProjectNeedAbility" type="text" readonly />
+              </div>
+              <div>
+                <label>基础资金</label>
+                <input id="rndProjectBaseFund" type="text" readonly />
+              </div>
+              <div>
+                <label>推荐资金</label>
+                <input id="rndProjectRecommendFund" type="text" readonly />
+              </div>
+              <div>
+                <label>最少研发资金</label>
+                <input id="rndProjectMinFund" type="text" readonly />
+              </div>
+              <div style="grid-column: span 2;">
+                <label>代表 BOM</label>
+                <input id="rndProjectBom" type="text" readonly />
+              </div>
+              <div>
+                <label>有效研发资金</label>
+                <input id="rndFund" type="number" value="2000000" step="0.01" min="0" />
+              </div>
+              <div>
+                <label>推荐资金（公式分母）</label>
+                <input id="rndCalcRecommendFund" type="number" value="1400000" step="0.01" min="0" />
+              </div>
+              <div>
+                <label>研发能力</label>
+                <input id="rndAbility" type="number" value="150" step="0.01" />
+              </div>
+              <div>
+                <label>能力要求</label>
+                <input id="rndRequiredAbility" type="number" value="100" step="0.01" />
+              </div>
+            </div>
+            <div class="action-row">
+              <button class="btn btn-secondary" onclick="syncStaffToRnd()">从“人员配置”带入研发能力</button>
+              <button class="btn btn-secondary" onclick="applyExcelRecommendedResearch()">按表内推荐研发配置带入</button>
+            </div>
+          </div>
+
+          <div>
+            <div class="result-box" style="margin-top:0;">
+              <div class="metric"><div class="k">扣减前基础成功率</div><div class="v" id="rndBaseRate">0%</div></div>
+              <div class="metric" id="metricRndMin"><div class="k">最低成功率</div><div class="v" id="rndMinRate">0%</div></div>
+              <div class="metric" id="metricRndMax"><div class="k">最高成功率</div><div class="v" id="rndMaxRate">0%</div></div>
+              <div class="metric" id="metricRndJudge"><div class="k">项目判断</div><div class="v" id="rndJudge">-</div></div>
+              <div class="metric"><div class="k">推荐研发人数</div><div class="v" id="rndRecommendedCount">0</div></div>
+              <div class="metric"><div class="k">对应研发能力</div><div class="v" id="rndRecommendedAbility">0</div></div>
+              <div class="metric"><div class="k">预计招聘费用</div><div class="v" id="rndRecommendedRecruitCost">0</div></div>
+              <div class="metric"><div class="k">预计季度工资</div><div class="v" id="rndRecommendedWage">0</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="ad">
+      <div class="card">
+        <h2>广告主控台</h2>
+        <div class="subtle">把“广告效果 + 单市场开拓判定”合成一张卡。你只需要在这里决定广告类型、投放市场、累计效果，页面会同时给出有效性与开拓状态。</div>
+        <div class="section-split">
+          <div>
+            <div class="grid-4">
+              <div>
+                <label>广告类型</label>
+                <select id="adType"></select>
+              </div>
+              <div>
+                <label>实际投入（万）</label>
+                <input id="adSpend" type="number" value="150" step="0.01" min="0" />
+              </div>
+              <div>
+                <label>本轮前已使用次数</label>
+                <input id="adUsedCount" type="number" value="0" step="1" min="0" />
+              </div>
+              <div>
+                <label>目标开拓市场</label>
+                <select id="adOpenMarket"></select>
+              </div>
+              <div style="grid-column: span 2;">
+                <label>广告规则</label>
+                <input id="adLimitText" type="text" readonly />
+              </div>
+              <div>
+                <label>历史累计效果（万）</label>
+                <input id="adHistoryEffect" type="number" value="0" step="0.01" min="0" />
+              </div>
+              <div>
+                <label>本轮该市场效果（万）</label>
+                <input id="adCurrentEffect" type="number" value="0" step="0.01" min="0" />
+              </div>
+            </div>
+
+            <div style="margin-top: 12px;">
+              <label>投放市场（可多选）</label>
+              <div id="adMarketChoices" class="check-grid"></div>
+            </div>
+
+            <div class="action-row">
+              <button class="btn btn-secondary" onclick="carryAdEffectToOpenJudge()">自动带入本轮市场效果</button>
+              <button class="btn btn-secondary" onclick="carryAdEffectToMarket()">带入市场页</button>
+            </div>
+          </div>
+
+          <div>
+            <div class="result-box" style="margin-top:0;">
+              <div class="metric"><div class="k">市场数</div><div class="v" id="adMarketCount">0</div></div>
+              <div class="metric"><div class="k">平均分配（万/市场）</div><div class="v" id="adAvgSpend">0</div></div>
+              <div class="metric"><div class="k">单市场实际效果（万）</div><div class="v" id="adPerMarketEffect">0</div></div>
+              <div class="metric"><div class="k">总实际效果（万）</div><div class="v" id="adTotalEffect">0</div></div>
+              <div class="metric" id="metricAdValid"><div class="k">广告是否有效</div><div class="v" id="adValidStatus">-</div></div>
+              <div class="metric" id="metricAdOpenStatus"><div class="k">开拓状态</div><div class="v" id="adOpenStatus">-</div></div>
+              <div class="metric"><div class="k">距永久开拓还差（万）</div><div class="v" id="adGapToPerm">0</div></div>
+              <div class="metric" id="metricAdNote"><div class="k">说明</div><div class="v" id="adStatusNote">-</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>市场</th>
+                <th>临时门槛</th>
+                <th>永久门槛</th>
+                <th>单市场效果</th>
+                <th>单轮判定</th>
+              </tr>
+            </thead>
+            <tbody id="adResultTableBody">
+              <tr><td colspan="5">暂无结果</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="formula">
+          平均分配 = 实际投入 / 市场数；单市场实际效果 = 实际投入 × 分配比率。<br>
+          开拓状态按 历史累计效果 + 本轮该市场效果 判断，达到临时/永久门槛后切换状态。
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="finance">
+      <div class="card">
+        <h2>贷款主控台</h2>
+        <div class="subtle">把“可贷款额度 + 本息与利息”合成一张卡，避免同一页填两次贷款相关信息。</div>
+        <div class="section-split">
+          <div>
+            <div class="grid-4">
+              <div>
+                <label>所有者权益合计</label>
+                <input id="loanEquity" type="number" value="15000000" step="0.01" min="0" />
+              </div>
+              <div>
+                <label>负债合计</label>
+                <input id="loanLiability" type="number" value="0" step="0.01" min="0" />
+              </div>
+              <div>
+                <label>未逾期贷款金额</label>
+                <input id="loanNotOverdue" type="number" value="0" step="0.01" min="0" />
+              </div>
+              <div>
+                <label>已逾期贷款金额</label>
+                <input id="loanOverdue" type="number" value="0" step="0.01" min="0" />
+              </div>
+              <div>
+                <label>拟贷款金额</label>
+                <input id="loanPrincipal" type="number" value="3000000" step="0.01" min="0" />
+              </div>
+              <div>
+                <label>贷款期数</label>
+                <select id="loanPeriods">
+                  <option value="2">2 期</option>
+                  <option value="3" selected>3 期</option>
+                </select>
+              </div>
+              <div>
+                <label>每期利率</label>
+                <input id="loanRate" type="number" value="0.018" step="0.001" min="0" />
+              </div>
+              <div>
+                <label>&nbsp;</label>
+                <button class="btn" onclick="fillLoanPrincipalFromAvailable()">用可贷额度覆盖拟贷款金额</button>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="result-box" style="margin-top:0;">
+              <div class="metric"><div class="k">贷款上限基础额</div><div class="v" id="loanBaseCap">0</div></div>
+              <div class="metric"><div class="k">逾期折算占用</div><div class="v" id="loanOverduePenalty">0</div></div>
+              <div class="metric" id="metricLoanAvailable"><div class="k">可新增贷款额度</div><div class="v" id="loanAvailable">0</div></div>
+              <div class="metric" id="metricLoanFit"><div class="k">拟贷款是否超限</div><div class="v" id="loanFitStatus">-</div></div>
+              <div class="metric"><div class="k">本息和</div><div class="v" id="loanRepayTotal">0</div></div>
+              <div class="metric"><div class="k">总利息</div><div class="v" id="loanInterestTotal">0</div></div>
+              <div class="metric"><div class="k">每期利息</div><div class="v" id="loanInterestEach">0</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>四期现金流滚动表</h2>
+        <div class="subtle">这一块保留表格形态，因为按季度滚动最直观。这里只保留最核心的 4 期现金链推演。</div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>项目</th>
+                <th>第1期</th>
+                <th>第2期</th>
+                <th>第3期</th>
+                <th>第4期</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>期初资金</td>
+                <td><input id="cashBegin1" type="number" value="10000000" step="0.01" /></td>
+                <td><input id="cashBegin2" type="number" value="0" step="0.01" /></td>
+                <td><input id="cashBegin3" type="number" value="0" step="0.01" /></td>
+                <td><input id="cashBegin4" type="number" value="0" step="0.01" /></td>
+              </tr>
+              <tr>
+                <td>经营流入</td>
+                <td><input id="cashIn1" type="number" value="0" step="0.01" /></td>
+                <td><input id="cashIn2" type="number" value="2568000" step="0.01" /></td>
+                <td><input id="cashIn3" type="number" value="3374000" step="0.01" /></td>
+                <td><input id="cashIn4" type="number" value="3554000" step="0.01" /></td>
+              </tr>
+              <tr>
+                <td>经营流出</td>
+                <td><input id="cashOut1" type="number" value="4320000" step="0.01" /></td>
+                <td><input id="cashOut2" type="number" value="1274000" step="0.01" /></td>
+                <td><input id="cashOut3" type="number" value="1564000" step="0.01" /></td>
+                <td><input id="cashOut4" type="number" value="3133900" step="0.01" /></td>
+              </tr>
+              <tr>
+                <td>新增贷款</td>
+                <td><input id="cashLoanIn1" type="number" value="0" step="0.01" /></td>
+                <td><input id="cashLoanIn2" type="number" value="0" step="0.01" /></td>
+                <td><input id="cashLoanIn3" type="number" value="0" step="0.01" /></td>
+                <td><input id="cashLoanIn4" type="number" value="0" step="0.01" /></td>
+              </tr>
+              <tr>
+                <td>还本付息</td>
+                <td><input id="cashLoanOut1" type="number" value="0" step="0.01" /></td>
+                <td><input id="cashLoanOut2" type="number" value="0" step="0.01" /></td>
+                <td><input id="cashLoanOut3" type="number" value="0" step="0.01" /></td>
+                <td><input id="cashLoanOut4" type="number" value="0" step="0.01" /></td>
+              </tr>
+              <tr>
+                <td>税费/额外支出</td>
+                <td><input id="cashTax1" type="number" value="0" step="0.01" /></td>
+                <td><input id="cashTax2" type="number" value="0" step="0.01" /></td>
+                <td><input id="cashTax3" type="number" value="0" step="0.01" /></td>
+                <td><input id="cashTax4" type="number" value="0" step="0.01" /></td>
+              </tr>
+              <tr>
+                <td>净现金流</td>
+                <td id="cashNet1">0</td>
+                <td id="cashNet2">0</td>
+                <td id="cashNet3">0</td>
+                <td id="cashNet4">0</td>
+              </tr>
+              <tr>
+                <td>期末资金</td>
+                <td id="cashEnd1">0</td>
+                <td id="cashEnd2">0</td>
+                <td id="cashEnd3">0</td>
+                <td id="cashEnd4">0</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="action-row">
+          <button class="btn btn-secondary" onclick="chainCashBegins()">用上一期期末覆盖下一期期初</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="market">
+      <div class="card">
+        <h2>市场主控台</h2>
+        <div class="subtle">把“市场影响力 + 下一季度市场需求量”合成一张卡。广告页可以一键把单市场效果带到这里，减少重复输入。</div>
+        <div class="section-split">
+          <div>
+            <div class="grid-3">
+              <div>
+                <label>本企业市场有效投资总额</label>
+                <input id="marketSelfInvest" type="number" value="750000" step="0.01" min="0" />
+              </div>
+              <div>
+                <label>该市场所有有效投资总额</label>
+                <input id="marketTotalInvest" type="number" value="3000000" step="0.01" min="0.01" />
+              </div>
+              <div>
+                <label>上一季度总产量</label>
+                <input id="demandLastOutput" type="number" value="10000" step="0.01" min="0" />
+              </div>
+              <div>
+                <label>本地消费比例（如 0.3）</label>
+                <input id="demandLocalRatio" type="number" value="0.3" step="0.01" min="0" />
+              </div>
+              <div>
+                <label>本市场广告费用</label>
+                <input id="demandLocalAd" type="number" value="1000000" step="0.01" min="0" />
+              </div>
+              <div>
+                <label>所有市场广告费用</label>
+                <input id="demandTotalAd" type="number" value="5000000" step="0.01" min="0.01" />
+              </div>
+              <div>
+                <label>市场繁荣系数</label>
+                <input id="demandBoomFactor" type="number" value="1" step="0.01" min="0" />
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="result-box" style="margin-top:0;">
+              <div class="metric"><div class="k">市场影响力（小数）</div><div class="v" id="marketInfluenceDecimal">0</div></div>
+              <div class="metric"><div class="k">市场影响力（百分比）</div><div class="v" id="marketInfluencePercent">0%</div></div>
+              <div class="metric" id="metricMarketInfluenceNote"><div class="k">影响力判断</div><div class="v" id="marketInfluenceNote">-</div></div>
+              <div class="metric"><div class="k">繁荣调整前需求</div><div class="v" id="demandBaseResult">0</div></div>
+              <div class="metric"><div class="k">最终需求量</div><div class="v" id="demandFinalResult">0</div></div>
+              <div class="metric"><div class="k">广告分流占比</div><div class="v" id="demandAdShare">0%</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>本地市场需求速算</h2>
+        <div class="subtle">这个公式结构独立，单独保留成一张小卡，更容易快速试算。</div>
+        <div class="grid-3">
+          <div>
+            <label>本市场内所有公司上一季度总产量</label>
+            <input id="localNeedTotalOutput" type="number" value="10000" step="0.01" min="0" />
+          </div>
+          <div>
+            <label>市场需求比例（如 0.3）</label>
+            <input id="localNeedRatio" type="number" value="0.3" step="0.01" min="0" />
+          </div>
+          <div>
+            <label>本地市场份额（如 0.2）</label>
+            <input id="localNeedShare" type="number" value="0.2" step="0.01" min="0" />
+          </div>
+        </div>
+        <div class="result-box">
+          <div class="metric"><div class="k">本地基础需求</div><div class="v" id="localNeedBase">0</div></div>
+          <div class="metric"><div class="k">分流需求</div><div class="v" id="localNeedFlow">0</div></div>
+          <div class="metric"><div class="k">本地市场需求</div><div class="v" id="localNeedResult">0</div></div>
+          <div class="metric"><div class="k">说明</div><div class="v" id="localNeedNote">-</div></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const LINE_DATA = {
+      '劳动密集型生产线': { tech: 2, capacity: 500, utilization: 0.5, buyPrice: 500000 },
+      '半自动生产线': { tech: 3, capacity: 500, utilization: 1, buyPrice: 1000000 },
+      '全自动生产线': { tech: 4, capacity: 450, utilization: 10, buyPrice: 1500000 },
+      '柔性生产线': { tech: 4, capacity: 400, utilization: 3, buyPrice: 2000000 },
+      '半自动v2': { tech: 3, capacity: 500, utilization: 1, buyPrice: 1000000 },
+      '半自动v3-技术提升1次': { tech: 4, capacity: 500, utilization: 1, buyPrice: 1500000 }
+    };
+
+    // 工艺清单：family = 所属产品大类（售价按大类取），process = 工艺水平
+    // 工艺水平取「软件手册 + 客户课程 PPT」两份一致的值
+    // （Excel 的 Lb=1 / Sa=3 / Sb=2 是错的，已按两份权威来源修正）
+    const PRODUCT_DATA = {
+      'La': { name: 'L型A型工艺清单', family: 'L', process: 1, materials: { M1: 2 } },
+      'Lb': { name: 'L型B型工艺清单', family: 'L', process: 0, materials: { M1: 1 } },
+      'Ha': { name: 'H型A型工艺清单', family: 'H', process: 2, materials: { M1: 2, M2: 2 } },
+      'Hb': { name: 'H型B型工艺清单', family: 'H', process: 1, materials: { M1: 1, M2: 1 } },
+      'Oa': { name: 'O型A型工艺清单', family: 'O', process: 3, materials: { M1: 1, M2: 1, M3: 2 } },
+      'Ob': { name: 'O型B型工艺清单', family: 'O', process: 2, materials: { M1: 1, M2: 1, M3: 1 } },
+      'Sa': { name: 'S型A型工艺清单', family: 'S', process: 4, materials: { L: 1, M2: 1, M3: 1 } },
+      'Sb': { name: 'S型B型工艺清单', family: 'S', process: 3, materials: { L: 1, M3: 1 } }
+    };
+
+    // ── 参数方案（只影响「产品市场售价」与「M2 单价」）─────────────────
+    // 工艺水平用上面已核实的固定值，不随方案变化（两份权威来源一致，没有版本差异）
+    const PARAM_PROFILES = {
+      'manual': { name: '默认（软件手册 2.0/3.0）', prices: { L: 4000, H: 6000, O: 8000,  S: 10000 }, m2: 600 },
+      'jhdx':   { name: '江汉大学（202609）',      prices: { L: 4000, H: 8000, O: 10000, S: 12000 }, m2: 600 },
+      'custom': { name: '自定义',                  prices: null, m2: null }
+    };
+
+    const MATERIAL_PRICE = { M1: 600, M2: 600, M3: 1000, L: 3000 };
+
+    // 当前生效的售价（自定义方案下由输入框写入）
+    const PRICES = { L: 4000, H: 6000, O: 8000, S: 10000 };
+    const priceOf = (product) => PRICES[product.family] || 0;
+    // 毛利率按「单位售价 − 单位材料成本」比较（人工按季计，与产量相关，故不摊进单价里做横向比较）
+    const materialCostOf = (product) => {
+      let c = 0;
+      Object.entries(product.materials).forEach(([k, v]) => { c += v * (MATERIAL_PRICE[k] || 0); });
+      return c;
+    };
+    const STAFF_DATA = {
+      junior: { recruit: 6000, wage: 4000, ability: 10 },
+      senior: { recruit: 10000, wage: 6000, ability: 20 },
+      manager: { recruit: 8000, wage: 5000, ability: 0.25 },
+      research: { recruit: 10000, wage: 10000, ability: 10 }
+    };
+
+    const RND_PROJECTS = {
+      'L型产品研发': { code: 'La', needAbility: null, baseFund: null, recommendFund: null, minFund: null, bom: '2×M1', level: 1 },
+      'L型产品工艺改进': { code: 'Lb', needAbility: 50, baseFund: 300000, recommendFund: 420000, minFund: 100000, bom: 'M1', level: 1 },
+      'H型产品研发': { code: 'Ha', needAbility: 100, baseFund: 1000000, recommendFund: 1400000, minFund: 300000, bom: '2×M1+2×M2', level: 2 },
+      'H型产品工艺改进': { code: 'Hb', needAbility: 50, baseFund: 300000, recommendFund: 420000, minFund: 100000, bom: 'M1+M2', level: 1 },
+      'O型产品研发': { code: 'Oa', needAbility: 100, baseFund: 2000000, recommendFund: 2800000, minFund: 1000000, bom: 'M1+M2+2×M3', level: 3 },
+      'Ob高端工艺改进': { code: 'Ob', needAbility: 30, baseFund: 600000, recommendFund: 840000, minFund: 300000, bom: 'M1+M2+M3', level: 2 },
+      'S型产品研发': { code: 'Sa', needAbility: 100, baseFund: 3000000, recommendFund: 4200000, minFund: 1500000, bom: 'L+M2+M3', level: 3 },
+      'Sb高端工艺改进': { code: 'Sb', needAbility: 30, baseFund: 600000, recommendFund: 840000, minFund: 300000, bom: 'L+M3', level: 2 }
+    };
+
+    const THROUGHPUT_WAREHOUSES = {
+      '小型原材料库': 30000,
+      '中型原材料库': 40000,
+      '大型原材料库': 50000,
+      '数字化仓储': 80000,
+      '小型产成品库': 4000,
+      '中型产成品库': 8000,
+      '大型产成品库': 12000,
+      '自定义': null
+    };
+
+    const THROUGHPUT_GOODS = {
+      'M1': 1,
+      'M2': 1,
+      'M3': 1,
+      'L型': 3,
+      'O型': 3,
+      'H型': 3,
+      'S型': 3,
+      '自定义': null
+    };
+
+    const AD_CHANNELS = {
+      '新媒体': { min: 40, ratio: 0.5, mode: 'group', limitText: '1期内1次', maxUses: 1 },
+      '电视': { min: 30, ratio: 1, mode: 'single', limitText: '3期内2次', maxUses: 2 },
+      '电影': { min: 60, ratio: 1.5, mode: 'single', limitText: '3期内1次', maxUses: 1 },
+      '代言': { min: 50, ratio: 0.6, mode: 'group', limitText: '2期内1次', maxUses: 1 }
+    };
+
+    const AD_MARKETS = {
+      '沈阳': { temp: 20, perm: 300 },
+      '大连': { temp: 25, perm: 150 },
+      '北京': { temp: 30, perm: 400 },
+      '武汉': { temp: 15, perm: 150 },
+      '成都': { temp: 25, perm: 200 },
+      '深圳': { temp: 25, perm: 300 },
+      '亚洲': { temp: 30, perm: 500 }
+    };
+
+    let lastAdCalc = { valid: false, selectedMarkets: [], perMarketEffect: 0, totalEffect: 0 };
+
+    // ── 反推「最优人员配备」────────────────────────────────────────────
+    // 依据手册 §2.1 产能公式：
+    //   产能 =（初级能力×人数 + 高级能力×人数）×(1 + 管理能力×人数) × 生产线人员使用率
+    // 手册 §2.1 第 4 条：「产能提高到最大产能时不再增加」→ 超出上限的部分白付工资、不产出。
+    // 所以「最优」= 在产能达到该生产线最大产能的前提下，工资最低的整数人员组合。
+    //   约束：产能 ≥ line.capacity
+    //   目标：min(初级工资×j + 高级工资×s + 管理工资×m)
+    function optimalStaffing(line) {
+      const D = STAFF_DATA;
+      let best = null;
+      for (let m = 0; m <= 20; m++) {
+        for (let s = 0; s <= 40; s++) {
+          for (let j = 0; j <= 40; j++) {
+            const capacity = (D.junior.ability * j + D.senior.ability * s)
+                           * (1 + D.manager.ability * m) * line.utilization;
+            if (capacity < line.capacity) continue;
+            const wage = D.junior.wage * j + D.senior.wage * s + D.manager.wage * m;
+            const people = j + s + m;
+            // 工资相同则取人数少的
+            if (!best || wage < best.wage || (wage === best.wage && people < best.people)) {
+              best = { junior: j, senior: s, manager: m, wage, capacity, people };
+            }
+          }
+        }
+      }
+      return best;
+    }
+
+    const $ = (id) => document.getElementById(id);
+    const num = (id) => Number($(id).value) || 0;
+    const setText = (id, value) => $(id).textContent = value;
+    const fmt = (v, d = 2) => Number(v).toFixed(d).replace(/\.00$/, '');
+    const pct = (v, d = 2) => `${(v * 100).toFixed(d).replace(/\.00$/, '')}%`;
+
+    function setState(id, state) {
+      const el = $(id);
+      if (!el) return;
+      el.classList.remove('state-good', 'state-bad', 'state-warn');
+      if (state) el.classList.add(`state-${state}`);
+    }
+
+    function setMetricState(id, state) {
+      const el = $(id);
+      if (!el) return;
+      el.classList.remove('good', 'bad', 'warnbox');
+      if (state === 'good') el.classList.add('good');
+      if (state === 'bad') el.classList.add('bad');
+      if (state === 'warn') el.classList.add('warnbox');
+    }
+
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        $(btn.dataset.tab).classList.add('active');
+      });
+    });
+
+    function fillSelect(selectId, items, mapper) {
+      const el = $(selectId);
+      el.innerHTML = '';
+      items.forEach(item => {
+        const m = mapper(item);
+        const opt = document.createElement('option');
+        opt.value = m.value;
+        opt.textContent = m.label;
+        el.appendChild(opt);
+      });
+    }
+
+    function fillProductSelect() {
+      const el = $('prodProduct');
+      const keep = el.value;
+      fillSelect('prodProduct', Object.keys(PRODUCT_DATA),
+        x => ({ value: x, label: `${x}｜${PRODUCT_DATA[x].name}｜售价 ${fmt(priceOf(PRODUCT_DATA[x]))}` }));
+      if (keep && PRODUCT_DATA[keep]) el.value = keep;
+    }
+
+    // ── 参数方案：切换 / 自定义 ──────────────────────────────────────
+    function applyProfile() {
+      const key = $('paramProfile').value;
+      const prof = PARAM_PROFILES[key];
+      const isCustom = key === 'custom';
+
+      ['priceL', 'priceH', 'priceO', 'priceS', 'priceM2'].forEach(id => { $(id).disabled = !isCustom; });
+
+      if (!isCustom && prof.prices) {
+        PRICES.L = prof.prices.L; PRICES.H = prof.prices.H;
+        PRICES.O = prof.prices.O; PRICES.S = prof.prices.S;
+        MATERIAL_PRICE.M2 = prof.m2;
+        $('priceL').value = PRICES.L; $('priceH').value = PRICES.H;
+        $('priceO').value = PRICES.O; $('priceS').value = PRICES.S;
+        $('priceM2').value = MATERIAL_PRICE.M2;
+      } else {
+        PRICES.L = num('priceL'); PRICES.H = num('priceH');
+        PRICES.O = num('priceO'); PRICES.S = num('priceS');
+        MATERIAL_PRICE.M2 = num('priceM2');
+      }
+
+      $('profileActive').value =
+        `L ${fmt(PRICES.L)} / H ${fmt(PRICES.H)} / O ${fmt(PRICES.O)} / S ${fmt(PRICES.S)}　｜　M2 ${fmt(MATERIAL_PRICE.M2)}`;
+
+      fillProductSelect();
+      renderProductComparison();
+      recalcAll();
+    }
+
+    // ── 产品经济性对比（随参数方案自动重算）──────────────────────────
+    function renderProductComparison() {
+      const body = $('prodCompareBody');
+      if (!body) return;
+
+      const rows = Object.entries(PRODUCT_DATA).map(([code, p]) => {
+        const materialCost = materialCostOf(p);
+        const price = priceOf(p);
+        const margin = price - materialCost;
+        return { code, name: p.name, process: p.process, price, materialCost, margin,
+                 rate: price > 0 ? margin / price : 0, minTech: p.process + 1 };
+      }).sort((a, b) => b.margin - a.margin);
+
+      body.innerHTML = rows.map((r, i) => {
+        const best = i === 0;
+        return `<tr${best ? ' style="background:#f0fdf4;font-weight:700"' : ''}>`
+          + `<td>${r.code}</td><td style="text-align:left">${r.name}</td>`
+          + `<td>${fmt(r.process)}</td><td>${fmt(r.minTech)}</td>`
+          + `<td>${fmt(r.materialCost)}</td><td>${fmt(r.price)}</td>`
+          + `<td>${fmt(r.margin)}</td><td>${pct(r.rate)}</td>`
+          + `<td>${best ? '⭐ 最优' : '#' + (i + 1)}</td></tr>`;
+      }).join('');
+
+      setText('prodCompareBest', rows[0] ? `${rows[0].code}（单位毛利 ${fmt(rows[0].margin)}）` : '-');
+      setText('prodCompareSecond', rows[1] ? `${rows[1].code}（单位毛利 ${fmt(rows[1].margin)}）` : '-');
+    }
+
+    function initReferenceData() {
+      fillSelect('prodLine', Object.keys(LINE_DATA), x => ({ value: x, label: x }));
+      fillSelect('thrWarehouseType', Object.keys(THROUGHPUT_WAREHOUSES), x => ({ value: x, label: x }));
+      initThroughputGoodsSelect();
+      fillProductSelect();
+      fillSelect('rndProjectSelect', Object.keys(RND_PROJECTS), x => ({ value: x, label: `${x}｜${RND_PROJECTS[x].code}` }));
+      fillSelect('adType', Object.keys(AD_CHANNELS), x => ({ value: x, label: x }));
+      fillSelect('adOpenMarket', Object.keys(AD_MARKETS), x => ({ value: x, label: x }));
+      initAdMarketChoices();
+      syncProductionOptimal();
+      syncThroughputPreset();
+      syncThroughputGoods();
+      syncRndProject();
+      syncAdTypeMeta();
+    }
+
+    function initThroughputGoodsSelect() {
+      const el = $('thrGoodsSelect');
+      el.innerHTML = '';
+
+      const groups = [
+        { label: '原材料', items: ['M1', 'M2', 'M3'] },
+        { label: '产成品', items: ['L型', 'O型', 'H型', 'S型'] }
+      ];
+
+      groups.forEach(group => {
+        const optgroup = document.createElement('optgroup');
+        optgroup.label = group.label;
+        group.items.forEach(name => {
+          const opt = document.createElement('option');
+          opt.value = name;
+          opt.textContent = `${name}｜体积 ${THROUGHPUT_GOODS[name]}`;
+          optgroup.appendChild(opt);
+        });
+        el.appendChild(optgroup);
+      });
+
+      const customGroup = document.createElement('optgroup');
+      customGroup.label = '自定义';
+      const customOpt = document.createElement('option');
+      customOpt.value = '自定义';
+      customOpt.textContent = '自定义（手动输入）';
+      customGroup.appendChild(customOpt);
+      el.appendChild(customGroup);
+    }
+
+    function initAdMarketChoices() {
+      const box = $('adMarketChoices');
+      box.innerHTML = '';
+      Object.keys(AD_MARKETS).forEach(name => {
+        const label = document.createElement('label');
+        label.className = 'check-item';
+        label.innerHTML = `<input type="checkbox" class="ad-market" value="${name}"> ${name}`;
+        box.appendChild(label);
+      });
+    }
+
+    function getSelectedAdMarkets() {
+      return Array.from(document.querySelectorAll('.ad-market:checked')).map(el => el.value);
+    }
+
+    // 【产能 与 产量 是两个概念】（平台规则 PDF §2.1 第 4/5 条）
+    //   产能 =（初级能力×人数 + 高级能力×人数）×(1 + 管理能力×人数) × 人员利用率
+    //         且「产能提高到最大产能时不再增加」→ 产能有上限
+    //   产量 =（线体技术水平 − 产品工艺水平）× 产能
+    // 平台规则 PDF 第 10 页注：技术水平 − 工艺水平 = 0 时，系统以 0.5 计算
+    // 故「有效水平差」= gap>0 ? gap : (gap===0 ? 0.5 : 0)，产量与理论最大产量共用这一处口径
+    function effectiveGap(line, product) {
+      const gap = line.tech - product.process;
+      if (gap > 0) return gap;
+      if (gap === 0) return 0.5;
+      return 0;
+    }
+
+    function maxOutputOf(line, product) {
+      return effectiveGap(line, product) * line.capacity;
+    }
+
+    // 选完生产线或产品后自动带入「最优配置」：
+    //   ① 人员利用率随产线  ② 计划生产数量 = 理论最大产量  ③ 最优人员配备 + 相应工资
+    // 用户之后仍可手动改任意一项；再次切换产线/产品会重新带回最优基线。
+    function syncProductionOptimal() {
+      const line = LINE_DATA[$('prodLine').value];
+      const product = PRODUCT_DATA[$('prodProduct').value];
+      if (!line || !product) return;
+
+      $('prodUtilization').value = line.utilization;
+
+      const maxOutput = maxOutputOf(line, product);
+      $('prodQty').value = Math.round(maxOutput * 1000) / 1000;
+
+      const opt = optimalStaffing(line);
+      if (opt) {
+        $('prodJuniorCount').value = opt.junior;
+        $('prodSeniorCount').value = opt.senior;
+        $('prodManagerCount').value = opt.manager;
+        $('prodLaborCost').value = opt.wage;
+      }
+
+      calcProduction();
+      calcStaff();
+    }
+
+    function syncThroughputPreset() {
+      const key = $('thrWarehouseType').value;
+      const preset = THROUGHPUT_WAREHOUSES[key];
+      if (preset !== null && preset !== undefined) {
+        $('thrMaxThroughput').value = preset;
+      }
+      calcThroughput();
+    }
+
+    function syncThroughputGoods() {
+      const key = $('thrGoodsSelect').value;
+      const preset = THROUGHPUT_GOODS[key];
+      if (key && key !== '自定义') {
+        $('thrGoodsName').value = key;
+      }
+      if (preset !== null && preset !== undefined) {
+        $('thrVolume').value = preset;
+      }
+      calcThroughput();
+    }
+
+    function calcThroughput() {
+      const maxT = num('thrMaxThroughput');
+      const used = num('thrUsed');
+      const qty = num('thrQty');
+      const volume = num('thrVolume');
+      const inbound = $('thrInbound').checked;
+      const outbound = $('thrOutbound').checked;
+      const goods = $('thrGoodsName').value || '-';
+      const ops = (inbound ? 1 : 0) + (outbound ? 1 : 0);
+      const currentCost = qty * volume * ops;
+      const totalUsed = used + currentCost;
+      const remaining = maxT - totalUsed;
+      let status = '未选择操作';
+      if (ops > 0) status = remaining >= 0 ? '可执行' : '吞吐量不足';
+      const opLabel = inbound && outbound ? '入库 + 出库' : (inbound ? '仅入库' : (outbound ? '仅出库' : '无'));
+
+      setText('thrOps', fmt(ops));
+      setText('thrCurrentCost', fmt(currentCost));
+      setText('thrTotalUsed', fmt(totalUsed));
+      setText('thrRemaining', fmt(remaining));
+      setText('thrStatus', status);
+      setText('thrGoodsLabel', goods);
+      setText('thrOpLabel', opLabel);
+
+      const state = ops === 0 ? 'warn' : (remaining >= 0 ? 'good' : 'bad');
+      setState('thrStatus', state);
+      setMetricState('metricThrStatus', state);
+
+      return { currentCost, totalUsed };
+    }
+
+    function addThroughputUsage() {
+      const result = calcThroughput();
+      $('thrUsed').value = result.totalUsed;
+      calcThroughput();
+    }
+
+    function resetThroughputUsed() {
+      $('thrUsed').value = 0;
+      calcThroughput();
+    }
+
+    function calcExpand() {
+      const currentArea = num('expandCurrentArea');
+      const count = num('expandCount');
+      const landPrice = num('expandLandPrice');
+      const area = currentArea / Math.pow(count + 1, 2);
+      const cost = area * landPrice;
+      const newArea = currentArea + area;
+      setText('expandAreaResult', fmt(area));
+      setText('expandCostResult', fmt(cost));
+      setText('expandNewAreaResult', fmt(newArea));
+      setText('expandStatus', area > 0 ? '可扩建' : '无变化');
+    }
+
+    function calcProduction() {
+      const line = LINE_DATA[$('prodLine').value];
+      const product = PRODUCT_DATA[$('prodProduct').value];
+      const qty = num('prodQty');
+      const laborCost = num('prodLaborCost');
+      const juniorCount = num('prodJuniorCount');
+      const seniorCount = num('prodSeniorCount');
+      const managerCount = num('prodManagerCount');
+      const juniorAbility = num('prodJuniorAbility');
+      const seniorAbility = num('prodSeniorAbility');
+      const managerAbility = num('prodManagerAbility');
+      const utilization = num('prodUtilization');
+
+      const gap = line.tech - product.process;
+      const maxOutput = maxOutputOf(line, product);
+      let status = '不生产';
+      if (gap > 0) status = '可生产';
+      else if (gap === 0) status = '临界可生产（0.5×产能）';
+
+      const laborBase = juniorAbility * juniorCount + seniorAbility * seniorCount;
+      const manageFactor = 1 + managerAbility * managerCount;
+      // 手册 §2.1 第 4 条：产能提高到最大产能时不再增加 → 实际产能须封顶
+      const rawCapacity = laborBase * manageFactor * utilization;
+      const capacity = Math.min(rawCapacity, line.capacity);
+      const detailedOutput = capacity * effectiveGap(line, product);
+      // 是否「同样产能还能更省」：产能已拉满，但按当前人数算的工资高于该线最优配备的工资
+      const currentWage = juniorCount * STAFF_DATA.junior.wage
+                        + seniorCount * STAFF_DATA.senior.wage
+                        + managerCount * STAFF_DATA.manager.wage;
+      const optStaff = optimalStaffing(line);
+      const wageSave = (optStaff && capacity >= line.capacity - 1e-9 && currentWage > optStaff.wage)
+                     ? currentWage - optStaff.wage : 0;
+      const capShort = capacity < line.capacity - 1e-9;
+
+      let materialCost = 0;
+      Object.entries(product.materials).forEach(([k, v]) => {
+        materialCost += qty * v * (MATERIAL_PRICE[k] || 0);
+      });
+      // 手册 §2.5 / §3.1：库存成本按「期末库存数量」计算，下一期支付
+      const stockQty = num('prodStockQty');
+      const stockRate = num('prodStockRate');
+      const stockCost = stockQty * stockRate;
+      const totalCost = materialCost + laborCost + stockCost;
+      const unitCost = qty > 0 ? totalCost / qty : 0;
+      const unitPrice = priceOf(product);
+      const unitGross = unitPrice - unitCost;
+      const gross = unitGross * qty;
+      const qtyCheck = qty <= maxOutput ? '未超上限' : '已超上限';
+
+      setText('prodStatus', status);
+      setText('prodGap', fmt(gap));
+      setText('prodMaxOutput', fmt(maxOutput));
+      setText('prodDetailedOutput', fmt(detailedOutput));
+      const capText = capShort
+        ? `${fmt(capacity)}（未拉满，上限 ${fmt(line.capacity)}）`
+        : (wageSave > 0 ? `${fmt(capacity)}（同产能可省 ${fmt(wageSave)}/季）` : fmt(capacity));
+      setText('prodCapacity', capText);
+      setMetricState('metricProdCapacity',
+        gap <= 0 ? 'warn' : (capShort ? 'bad' : (wageSave > 0 ? 'warn' : 'good')));
+      setText('prodMaterialCost', fmt(materialCost));
+      setText('prodStockCost', fmt(stockCost));
+      setText('prodTotalCost', fmt(totalCost));
+      setText('prodUnitPrice', fmt(unitPrice));
+      setText('prodUnitGross', fmt(unitGross));
+      setText('prodGross', fmt(gross));
+      setText('prodQtyCheck', qtyCheck);
+      setText('prodLineTech', fmt(line.tech));
+      setText('prodProductProcess', fmt(product.process));
+
+      setState('prodStatus', gap > 0 ? 'good' : (gap === 0 ? 'warn' : 'bad'));
+      setMetricState('metricProdStatus', gap > 0 ? 'good' : (gap === 0 ? 'warn' : 'bad'));
+      setState('prodUnitGross', unitGross > 0 ? 'good' : (unitGross === 0 ? 'warn' : 'bad'));
+      setMetricState('metricProdUnitGross', unitGross > 0 ? 'good' : (unitGross === 0 ? 'warn' : 'bad'));
+      setMetricState('metricProdGross', gross > 0 ? 'good' : (gross === 0 ? 'warn' : 'bad'));
+      setState('prodQtyCheck', qty <= maxOutput ? 'good' : 'bad');
+      setMetricState('metricProdQtyCheck', qty <= maxOutput ? 'good' : 'bad');
+    }
+
+    function calcStaff() {
+      const j = num('staffJuniorCount');
+      const s = num('staffSeniorCount');
+      const m = num('staffManagerCount');
+      const r = num('staffResearchCount');
+      const recruit = j * STAFF_DATA.junior.recruit + s * STAFF_DATA.senior.recruit + m * STAFF_DATA.manager.recruit + r * STAFF_DATA.research.recruit;
+      const wage = j * STAFF_DATA.junior.wage + s * STAFF_DATA.senior.wage + m * STAFF_DATA.manager.wage + r * STAFF_DATA.research.wage;
+      const people = j + s + m + r;
+      const currentLine = LINE_DATA[$('prodLine').value];
+      const capacityBoost = (STAFF_DATA.junior.ability * j + STAFF_DATA.senior.ability * s) * (1 + STAFF_DATA.manager.ability * m) * currentLine.utilization;
+      const researchAbility = STAFF_DATA.research.ability * r;
+
+      setText('staffRecruitCost', fmt(recruit));
+      setText('staffNextWage', fmt(wage));
+      setText('staffTotalPeople', fmt(people));
+      setText('staffCapacityBoost', fmt(capacityBoost));
+      setText('staffResearchAbility', fmt(researchAbility));
+      setText('staffResearchJudge', researchAbility >= 100 ? '达到' : '未达到');
+      setState('staffResearchJudge', researchAbility >= 100 ? 'good' : 'bad');
+      setMetricState('metricStaffResearchJudge', researchAbility >= 100 ? 'good' : 'bad');
+    }
+
+    function syncStaffToProduction() {
+      $('prodJuniorCount').value = $('staffJuniorCount').value;
+      $('prodSeniorCount').value = $('staffSeniorCount').value;
+      $('prodManagerCount').value = $('staffManagerCount').value;
+      calcProduction();
+    }
+
+    function syncStaffToRnd() {
+      $('rndAbility').value = $('staffResearchAbility').textContent;
+      calcRnd();
+    }
+
+    function syncRndProject() {
+      const key = $('rndProjectSelect').value;
+      const p = RND_PROJECTS[key];
+      if (!p) return;
+      $('rndProjectCode').value = p.code ?? '-';
+      $('rndProjectLevel').value = p.level ?? '-';
+      $('rndProjectNeedAbility').value = p.needAbility ?? '-';
+      $('rndProjectBaseFund').value = p.baseFund ?? '-';
+      $('rndProjectRecommendFund').value = p.recommendFund ?? '-';
+      $('rndProjectMinFund').value = p.minFund ?? '-';
+      $('rndProjectBom').value = p.bom ?? '-';
+      $('rndCalcRecommendFund').value = p.recommendFund ?? 0;
+      $('rndRequiredAbility').value = p.needAbility ?? 0;
+      calcRnd();
+    }
+
+    function calcRnd() {
+      const fund = num('rndFund');
+      const recommendFund = num('rndCalcRecommendFund');
+      const ability = num('rndAbility');
+      const required = num('rndRequiredAbility');
+
+      let base = 0;
+      let minRate = -0.4;
+      let maxRate = -0.2;
+      let judge = '偏低';
+      const hasParams = recommendFund > 0 && required > 0;
+
+      // 手册 3.0 §2.2：只有该项目的研发人员能力达到「基本研发能力要求」后，研发才能开始；
+      // 且每次投入的资金和人员不得少于「推荐资金」和「基本研发能力要求」，否则下季度一定不成功。
+      const underFund = hasParams && fund < recommendFund;
+      const underStaff = hasParams && ability < required;
+
+      if (hasParams) {
+        // 研发成功率 =（有效研发资金/推荐资金×80% +（研发能力−基本研发能力要求）/100×20%）−（20%至40%）
+        base = (fund / recommendFund) * 0.8 + (ability - required) / 100 * 0.2;
+        minRate = base - 0.4;
+        maxRate = base - 0.2;
+
+        if (underFund || underStaff) {
+          judge = underFund && underStaff ? '资金与人员均不足，必败'
+                : (underFund ? '资金低于推荐资金，必败' : '人员低于基本研发能力要求，必败');
+        } else if (minRate >= 1) {
+          judge = '必定成功';            // 手册：成功率落在 100%~120% 区间时，下期肯定研发成功
+        } else if (maxRate >= 1) {
+          judge = '大概率成功';
+        } else if (maxRate >= 0.8) {
+          judge = '可尝试';
+        } else if (maxRate > 0) {
+          judge = '偏低，建议加投';
+        } else {
+          judge = '成功率不为正，不建议';
+        }
+      } else {
+        judge = '该项目表内缺少公式参数';
+      }
+
+      const hasRequired = required > 0;
+      const recommendedCount = hasRequired ? Math.ceil(required / STAFF_DATA.research.ability) : null;
+      const recommendedAbility = hasRequired ? recommendedCount * STAFF_DATA.research.ability : null;
+      const recommendedRecruitCost = hasRequired ? recommendedCount * STAFF_DATA.research.recruit : null;
+      const recommendedWage = hasRequired ? recommendedCount * STAFF_DATA.research.wage : null;
+
+      setText('rndBaseRate', hasParams ? pct(base) : '-');
+      setText('rndMinRate', hasParams ? pct(minRate) : '-');
+      setText('rndMaxRate', hasParams ? pct(maxRate) : '-');
+      setText('rndJudge', judge);
+      setText('rndRecommendedCount', hasRequired ? fmt(recommendedCount) : '-');
+      setText('rndRecommendedAbility', hasRequired ? fmt(recommendedAbility) : '-');
+      setText('rndRecommendedRecruitCost', hasRequired ? fmt(recommendedRecruitCost) : '-');
+      setText('rndRecommendedWage', hasRequired ? fmt(recommendedWage) : '-');
+
+      let state;
+      if (!hasParams) state = 'warn';
+      else if (underFund || underStaff) state = 'bad';
+      else if (maxRate >= 1) state = 'good';
+      else if (maxRate >= 0.8) state = 'warn';
+      else state = 'bad';
+      setMetricState('metricRndMax', state);
+      setMetricState('metricRndJudge', state);
+      setState('rndJudge', state);
+    }
+
+    function applyExcelRecommendedResearch() {
+      const projectKey = $('rndProjectSelect').value;
+      const project = RND_PROJECTS[projectKey];
+      const required = num('rndRequiredAbility');
+      const recommendedFund = project?.recommendFund ?? 0;
+      if (!(required > 0) || !(recommendedFund > 0)) {
+        setText('rndJudge', '该项目表内无推荐配置');
+        setState('rndJudge', 'warn');
+        setMetricState('metricRndJudge', 'warn');
+        return;
+      }
+      const recommendedCount = Math.ceil(required / STAFF_DATA.research.ability);
+      const recommendedAbility = recommendedCount * STAFF_DATA.research.ability;
+      $('staffResearchCount').value = recommendedCount;
+      $('rndAbility').value = recommendedAbility;
+      $('rndFund').value = recommendedFund;
+      calcStaff();
+      calcRnd();
+    }
+
+    function syncAdTypeMeta() {
+      const ad = AD_CHANNELS[$('adType').value];
+      if (!ad) return;
+      $('adLimitText').value = `${ad.limitText}｜最低投入 ${ad.min} 万｜分配比率 ${ad.ratio}`;
+      calcAd();
+    }
+
+    function renderAdResultTable(selectedMarkets, perMarketEffect, valid) {
+      const body = $('adResultTableBody');
+      if (!selectedMarkets.length) {
+        body.innerHTML = '<tr><td colspan="5">暂无结果</td></tr>';
+        return;
+      }
+      body.innerHTML = selectedMarkets.map(m => {
+        const info = AD_MARKETS[m];
+        const effect = valid ? perMarketEffect : 0;
+        const status = effect >= info.perm ? '永久开拓' : (effect >= info.temp ? '临时开拓' : '未达到临时开拓');
+        return `<tr><td>${m}</td><td>${fmt(info.temp)}</td><td>${fmt(info.perm)}</td><td>${fmt(effect)}</td><td>${status}</td></tr>`;
+      }).join('');
+    }
+
+    function calcAd() {
+      const type = $('adType').value;
+      const ad = AD_CHANNELS[type];
+      const spend = num('adSpend');
+      const usedCount = num('adUsedCount');
+      const openMarket = $('adOpenMarket').value;
+      const selectedMarkets = getSelectedAdMarkets();
+      const marketCount = selectedMarkets.length;
+      const avgSpend = marketCount > 0 ? spend / marketCount : 0;
+      const perMarketEffectRaw = spend * ad.ratio;
+      const usageOk = usedCount + 1 <= ad.maxUses;
+      const modeOk = ad.mode === 'single' ? marketCount === 1 : marketCount >= 1;
+      const spendOk = marketCount > 0 && avgSpend >= ad.min;
+      const valid = usageOk && modeOk && spendOk;
+      const perMarketEffect = valid ? perMarketEffectRaw : 0;
+      const totalEffect = perMarketEffect * marketCount;
+
+      let note = [];
+      if (!marketCount) note.push('未选择市场');
+      if (!spendOk && marketCount) note.push('平均分配低于最低投入要求');
+      if (!modeOk && ad.mode === 'single') note.push('个体广告只能投 1 个市场');
+      if (!usageOk) note.push('已超过使用限制');
+      if (valid && !note.length) note.push('本轮广告有效');
+
+      setText('adMarketCount', fmt(marketCount));
+      setText('adAvgSpend', fmt(avgSpend));
+      setText('adPerMarketEffect', fmt(perMarketEffect));
+      setText('adTotalEffect', fmt(totalEffect));
+      setText('adValidStatus', valid ? '有效' : '无效');
+      setText('adStatusNote', note.join('；'));
+
+      lastAdCalc = { valid, selectedMarkets, perMarketEffect, totalEffect };
+      renderAdResultTable(selectedMarkets, perMarketEffect, valid);
+
+      if (selectedMarkets.includes(openMarket)) {
+        $('adCurrentEffect').value = perMarketEffect;
+      }
+      calcAdOpening();
+
+      setState('adValidStatus', valid ? 'good' : 'bad');
+      setMetricState('metricAdValid', valid ? 'good' : 'bad');
+      setMetricState('metricAdNote', valid ? 'good' : 'warn');
+    }
+
+    function calcAdOpening() {
+      const market = $('adOpenMarket').value;
+      const info = AD_MARKETS[market];
+      const history = num('adHistoryEffect');
+      const current = num('adCurrentEffect');
+      const accum = history + current;
+      const status = accum >= info.perm ? '永久开拓' : (accum >= info.temp ? '临时开拓' : '未开拓');
+      const gap = Math.max(0, info.perm - accum);
+
+      setText('adOpenStatus', status);
+      setText('adGapToPerm', fmt(gap));
+
+      const state = status === '永久开拓' ? 'good' : (status === '临时开拓' ? 'warn' : 'bad');
+      setState('adOpenStatus', state);
+      setMetricState('metricAdOpenStatus', state);
+    }
+
+    function carryAdEffectToOpenJudge() {
+      $('adCurrentEffect').value = lastAdCalc.valid ? lastAdCalc.perMarketEffect : 0;
+      calcAdOpening();
+    }
+
+    function carryAdEffectToMarket() {
+      $('marketSelfInvest').value = lastAdCalc.valid ? lastAdCalc.perMarketEffect * 10000 : 0;
+      $('demandLocalAd').value = lastAdCalc.valid ? lastAdCalc.perMarketEffect * 10000 : 0;
+      calcMarket();
+    }
+
+    function calcLoan() {
+      const equity = num('loanEquity');
+      const liability = num('loanLiability');
+      const notOverdue = num('loanNotOverdue');
+      const overdue = num('loanOverdue');
+      const principal = num('loanPrincipal');
+      const periods = Number($('loanPeriods').value) || 1;
+      const rate = num('loanRate');
+
+      const baseCap = equity * 0.5;
+      const overduePenalty = overdue * 1.5;
+      const available = Math.max(0, baseCap - liability - notOverdue - overduePenalty);
+      const total = principal * Math.pow(1 + rate, periods);
+      const interest = total - principal;
+      const each = periods > 0 ? interest / periods : 0;
+      const fitStatus = principal <= available ? '未超限' : '已超限';
+
+      setText('loanBaseCap', fmt(baseCap));
+      setText('loanOverduePenalty', fmt(overduePenalty));
+      setText('loanAvailable', fmt(available));
+      setText('loanFitStatus', fitStatus);
+      setText('loanRepayTotal', fmt(total));
+      setText('loanInterestTotal', fmt(interest));
+      setText('loanInterestEach', fmt(each));
+
+      setMetricState('metricLoanAvailable', available > 0 ? 'good' : 'bad');
+      setMetricState('metricLoanFit', principal <= available ? 'good' : 'bad');
+      setState('loanFitStatus', principal <= available ? 'good' : 'bad');
+    }
+
+    function fillLoanPrincipalFromAvailable() {
+      $('loanPrincipal').value = $('loanAvailable').textContent.replace(/,/g, '');
+      calcLoan();
+    }
+
+    function calcCashflow() {
+      const begins = [num('cashBegin1'), num('cashBegin2'), num('cashBegin3'), num('cashBegin4')];
+      const inflows = [num('cashIn1'), num('cashIn2'), num('cashIn3'), num('cashIn4')];
+      const outflows = [num('cashOut1'), num('cashOut2'), num('cashOut3'), num('cashOut4')];
+      const loanIns = [num('cashLoanIn1'), num('cashLoanIn2'), num('cashLoanIn3'), num('cashLoanIn4')];
+      const loanOuts = [num('cashLoanOut1'), num('cashLoanOut2'), num('cashLoanOut3'), num('cashLoanOut4')];
+      const taxes = [num('cashTax1'), num('cashTax2'), num('cashTax3'), num('cashTax4')];
+      const ends = [];
+      for (let i = 0; i < 4; i++) {
+        const net = inflows[i] + loanIns[i] - outflows[i] - loanOuts[i] - taxes[i];
+        const end = begins[i] + net;
+        ends.push(end);
+        setText(`cashNet${i+1}`, fmt(net));
+        setText(`cashEnd${i+1}`, fmt(end));
+        setState(`cashNet${i+1}`, net >= 0 ? 'good' : 'bad');
+        setState(`cashEnd${i+1}`, end >= 0 ? 'good' : 'bad');
+      }
+      return ends;
+    }
+
+    function chainCashBegins() {
+      const ends = calcCashflow();
+      $('cashBegin2').value = ends[0];
+      $('cashBegin3').value = ends[1];
+      $('cashBegin4').value = ends[2];
+      calcCashflow();
+    }
+
+    function calcMarket() {
+      const self = num('marketSelfInvest');
+      const total = num('marketTotalInvest');
+      const influence = total > 0 ? self / total : 0;
+      const influenceNote = influence >= 0.5 ? '优势较强' : (influence >= 0.2 ? '中等' : '偏弱');
+
+      const output = num('demandLastOutput');
+      const localRatio = num('demandLocalRatio');
+      const localAd = num('demandLocalAd');
+      const totalAd = num('demandTotalAd');
+      const boom = num('demandBoomFactor');
+      const adShare = totalAd > 0 ? localAd / totalAd : 0;
+      const base = output * localRatio + output * (1 - localRatio) * adShare;
+      const final = base * boom;
+
+      setText('marketInfluenceDecimal', fmt(influence, 4));
+      setText('marketInfluencePercent', pct(influence));
+      setText('marketInfluenceNote', influenceNote);
+      setText('demandBaseResult', fmt(base));
+      setText('demandFinalResult', fmt(final));
+      setText('demandAdShare', pct(adShare));
+
+      const state = influence >= 0.5 ? 'good' : (influence >= 0.2 ? 'warn' : 'bad');
+      setMetricState('metricMarketInfluenceNote', state);
+      setState('marketInfluenceNote', state);
+    }
+
+    function calcLocalDemand() {
+      const output = num('localNeedTotalOutput');
+      const ratio = num('localNeedRatio');
+      const share = num('localNeedShare');
+      const base = output * ratio;
+      const flow = output * (1 - ratio) * share;
+      const result = base + flow;
+      setText('localNeedBase', fmt(base));
+      setText('localNeedFlow', fmt(flow));
+      setText('localNeedResult', fmt(result));
+      setText('localNeedNote', result > 0 ? '可用于本地市场速算' : '结果为 0');
+    }
+
+    function applyOptimalStaffing() {
+      const line = LINE_DATA[$('prodLine').value];
+      if (!line) return;
+      const config = optimalStaffing(line);
+      if (!config) {
+        const status = $('prodStatus');
+        if (status) {
+          status.textContent = '该线反推无解（请检查最大产能/使用率）';
+          setState('prodStatus', 'warn');
+          setMetricState('metricProdStatus', 'warn');
+        }
+        return;
+      }
+
+      $('prodJuniorCount').value = config.junior;
+      $('prodSeniorCount').value = config.senior;
+      $('prodManagerCount').value = config.manager;
+      $('staffJuniorCount').value = config.junior;
+      $('staffSeniorCount').value = config.senior;
+      $('staffManagerCount').value = config.manager;
+      $('prodLaborCost').value = config.wage;
+      calcProduction();
+      calcStaff();
+
+      const status = $('prodStatus');
+      if (status) {
+        status.textContent = `已带入 ${config.junior}/${config.senior}/${config.manager}（工资 ${fmt(config.wage)}）`;
+        setState('prodStatus', 'good');
+        setMetricState('metricProdStatus', 'good');
+      }
+    }
+
+    function bindInputs(ids, fn) {
+      ids.forEach(id => {
+        const el = $(id);
+        if (!el) return;
+        const eventName = (el.tagName === 'SELECT' || el.type === 'checkbox') ? 'change' : 'input';
+        el.addEventListener(eventName, fn);
+      });
+    }
+
+    function bindAutoRecalc() {
+      bindInputs(['paramProfile'], applyProfile);
+      bindInputs(['priceL', 'priceH', 'priceO', 'priceS', 'priceM2'], applyProfile);
+      bindInputs(['expandCurrentArea', 'expandCount', 'expandLandPrice'], calcExpand);
+      bindInputs(['thrWarehouseType'], syncThroughputPreset);
+      bindInputs(['thrGoodsSelect'], syncThroughputGoods);
+      bindInputs(['thrMaxThroughput', 'thrGoodsName', 'thrVolume', 'thrQty', 'thrUsed'], calcThroughput);
+      bindInputs(['thrInbound', 'thrOutbound'], calcThroughput);
+      bindInputs(['prodLine', 'prodProduct'], syncProductionOptimal);
+      bindInputs(['prodQty', 'prodJuniorCount', 'prodSeniorCount', 'prodManagerCount', 'prodUtilization', 'prodJuniorAbility', 'prodSeniorAbility', 'prodManagerAbility', 'prodLaborCost', 'prodStockQty', 'prodStockRate'], calcProduction);
+      bindInputs(['staffJuniorCount', 'staffSeniorCount', 'staffManagerCount', 'staffResearchCount'], calcStaff);
+      bindInputs(['rndProjectSelect'], syncRndProject);
+      bindInputs(['rndFund', 'rndCalcRecommendFund', 'rndAbility', 'rndRequiredAbility'], calcRnd);
+      bindInputs(['adType'], syncAdTypeMeta);
+      bindInputs(['adSpend', 'adUsedCount', 'adOpenMarket', 'adHistoryEffect', 'adCurrentEffect'], calcAd);
+      document.addEventListener('change', (e) => { if (e.target.classList.contains('ad-market')) calcAd(); });
+      bindInputs(['loanEquity', 'loanLiability', 'loanNotOverdue', 'loanOverdue', 'loanPrincipal', 'loanPeriods', 'loanRate'], calcLoan);
+      bindInputs(['cashBegin1', 'cashBegin2', 'cashBegin3', 'cashBegin4', 'cashIn1', 'cashIn2', 'cashIn3', 'cashIn4', 'cashOut1', 'cashOut2', 'cashOut3', 'cashOut4', 'cashLoanIn1', 'cashLoanIn2', 'cashLoanIn3', 'cashLoanIn4', 'cashLoanOut1', 'cashLoanOut2', 'cashLoanOut3', 'cashLoanOut4', 'cashTax1', 'cashTax2', 'cashTax3', 'cashTax4'], calcCashflow);
+      bindInputs(['marketSelfInvest', 'marketTotalInvest', 'demandLastOutput', 'demandLocalRatio', 'demandLocalAd', 'demandTotalAd', 'demandBoomFactor'], calcMarket);
+      bindInputs(['localNeedTotalOutput', 'localNeedRatio', 'localNeedShare'], calcLocalDemand);
+    }
+
+    function recalcAll() {
+      calcExpand();
+      calcThroughput();
+      calcProduction();
+      calcStaff();
+      calcRnd();
+      calcAd();
+      calcLoan();
+      calcCashflow();
+      calcMarket();
+      calcLocalDemand();
+    }
+
+    function printPage() { window.print(); }
+
+    initReferenceData();
+    bindAutoRecalc();
+    applyProfile();   // 初始化参数方案（内部会重算全部 + 刷新产品对比）
+  </script>
+</body>
+</html>
