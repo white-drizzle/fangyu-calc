@@ -230,7 +230,7 @@
   <div class="wrap">
     <div class="hero">
       <h1>制造企业综合公式计算器</h1>
-      <p><b>v4.2（2026-09-21）移除「兼容判定」下拉框：</b>水平差为 0 时系统按 0.5 倍产能计算是<b>平台规则、不是可选项</b>，留着"按 0（仅作对照）"会让人误以为有两个口径，故固定按 0.5×产能。默认路径计算结果与 v4.1 完全一致。<br><b>v4.1（2026-09-21）修正「差值为 0」的行为：</b>平台规则 PDF 第 10 页注明确"技术水平 − 工艺水平 = 0 时，<b>系统以 0.5 计算</b>"。⚠️ 水平差为 0 的组合（如 半自动+Oa、全自动/柔性+Sa）产量<b>由此确定</b>。<br><b>v4.0（2026-09-21）选完产线/产品自动带入最优配置：</b>计划生产数量默认= <b>理论最大产量</b>，并自动带入最优人员配备与工资；实际产能按规则<b>封顶于该线最大产能</b>（新增「实际产能（封顶后）」指标，会提示"同产能可省 N/季"或"未拉满"）。<br><b>v3.0</b>：新增「参数方案」（默认手册 4000/6000/8000/10000、江汉大学 202609、自定义）与「产品经济性对比」自动选品。<br><b>v2.1 / v2.0</b>：最优人员配备改为公式反推；研发成功率公式与库存成本按手册修正。<br>已集成：厂区扩建、生产、吞吐量、研发、广告、贷款/现金流、市场需求。未集成：价格评分（竞单定价）。</p>
+      <p><b>v4.3（2026-09-21）研发栏新增「反推经费」：</b>把成功率公式反解成<b>要投多少钱</b> —— 目标是「区间下限 ≥ 100%（保底）」时需 <b>1.75 倍推荐资金</b>，目标是「区间上限 ≥ 100%（把握）」时需 <b>1.5 倍推荐资金</b>（多招人可少投钱）。新增两个带入按钮，并补上客户课程 PPT 的研发前置依赖提示。<br><b>v4.2（2026-09-21）移除「兼容判定」下拉框：</b>水平差为 0 时系统按 0.5 倍产能计算是<b>平台规则、不是可选项</b>，留着"按 0（仅作对照）"会让人误以为有两个口径，故固定按 0.5×产能。默认路径计算结果与 v4.1 完全一致。<br><b>v4.1（2026-09-21）修正「差值为 0」的行为：</b>平台规则 PDF 第 10 页注明确"技术水平 − 工艺水平 = 0 时，<b>系统以 0.5 计算</b>"。⚠️ 水平差为 0 的组合（如 半自动+Oa、全自动/柔性+Sa）产量<b>由此确定</b>。<br><b>v4.0（2026-09-21）选完产线/产品自动带入最优配置：</b>计划生产数量默认= <b>理论最大产量</b>，并自动带入最优人员配备与工资；实际产能按规则<b>封顶于该线最大产能</b>（新增「实际产能（封顶后）」指标，会提示"同产能可省 N/季"或"未拉满"）。<br><b>v3.0</b>：新增「参数方案」（默认手册 4000/6000/8000/10000、江汉大学 202609、自定义）与「产品经济性对比」自动选品。<br><b>v2.1 / v2.0</b>：最优人员配备改为公式反推；研发成功率公式与库存成本按手册修正。<br>已集成：厂区扩建、生产、吞吐量、研发、广告、贷款/现金流、市场需求。未集成：价格评分（竞单定价）。</p>
     </div>
 
     <div class="toolbar">
@@ -546,7 +546,7 @@
     <section class="panel" id="rnd">
       <div class="card">
         <h2>研发主控台</h2>
-        <div class="subtle">把“项目自动带参 + 成功率区间 + 研发能力判断”收成一张卡。项目选好后，严格按你提供的表带出：基本研发能力要求、基础资金、推荐资金、最少研发资金、BOM、工艺水平。<br><b>研发成功率公式已按《跨专业软件使用说明（3.0）》第 2.2 节修正为：</b>（有效研发资金 ÷ <b>推荐资金</b> × 80% ＋（研发能力 − 基本研发能力要求）÷ 100 × 20%）−（20%至40%）；成功率区间 = [结果 − 40%, 结果 − 20%]。<br>手册原文另有两条硬规则：<b>①</b> 每次投入的研发资金和人员<b>不得少于</b>推荐资金和基本研发能力要求，否则下季度一定不成功；<b>②</b> 成功率落在 <b>100%~120%</b> 区间时，下期肯定研发成功。<br>推荐研发人数仅在“基本研发能力要求”有值时才计算；像 L型产品研发这类表内为空的项目，不做推荐。<br><b>注：</b>手册表 6 只有「能力要求 / 最少投放资金 / 推荐资金」三列，<b>没有「基础资金」</b>；本页仍显示它仅供对照，不参与计算。</div>
+        <div class="subtle">把“项目自动带参 + 成功率区间 + 研发能力判断”收成一张卡。项目选好后，严格按你提供的表带出：基本研发能力要求、基础资金、推荐资金、最少研发资金、BOM、工艺水平。<br><b>研发成功率公式已按《跨专业软件使用说明（3.0）》第 2.2 节修正为：</b>（有效研发资金 ÷ <b>推荐资金</b> × 80% ＋（研发能力 − 基本研发能力要求）÷ 100 × 20%）−（20%至40%）；成功率区间 = [结果 − 40%, 结果 − 20%]。<br>手册原文另有两条硬规则：<b>①</b> 每次投入的研发资金和人员<b>不得少于</b>推荐资金和基本研发能力要求，否则下季度一定不成功；<b>②</b> 成功率落在 <b>100%~120%</b> 区间时，下期肯定研发成功。<br>推荐研发人数仅在“基本研发能力要求”有值时才计算；像 L型产品研发这类表内为空的项目，不做推荐。<br><b>反推经费：</b>把公式反解 —— 令 base = 目标值 T，得 <b>经费 = 推荐资金 ×（T − 能力项）÷ 0.8</b>。目标是「区间下限 ≥ 100%」时 T = 1.4（<b>保底</b>，最坏情况也成）；目标是「区间上限 ≥ 100%」时 T = 1.2（<b>把握</b>，仍要一点运气）。只招推荐人数时能力项为 0，公式退化成 <b>1.75 倍 / 1.5 倍推荐资金</b>；多招人可少投钱。<br><b>注：</b>手册表 6 只有「能力要求 / 最少投放资金 / 推荐资金」三列，<b>没有「基础资金」</b>；本页仍显示它仅供对照，不参与计算。<br><b>研发前置依赖（客户课程 PPT）：</b>必须研发成功 H 后，才能再研发 H 的改进型 —— 表内其他型号未见同样说明，暂按 H 专属处理。</div>
         <div class="section-split">
           <div>
             <div class="grid-3">
@@ -602,6 +602,8 @@
             <div class="action-row">
               <button class="btn btn-secondary" onclick="syncStaffToRnd()">从“人员配置”带入研发能力</button>
               <button class="btn btn-secondary" onclick="applyExcelRecommendedResearch()">按表内推荐研发配置带入</button>
+              <button class="btn btn-secondary" id="btnRndLikelyFund" onclick="applyRndFund('likely')">带入把握经费</button>
+              <button class="btn btn-secondary" id="btnRndSafeFund" onclick="applyRndFund('safe')">带入保底经费</button>
             </div>
           </div>
 
@@ -615,6 +617,8 @@
               <div class="metric"><div class="k">对应研发能力</div><div class="v" id="rndRecommendedAbility">0</div></div>
               <div class="metric"><div class="k">预计招聘费用</div><div class="v" id="rndRecommendedRecruitCost">0</div></div>
               <div class="metric"><div class="k">预计季度工资</div><div class="v" id="rndRecommendedWage">0</div></div>
+              <div class="metric" id="metricRndSafeFund"><div class="k">反推保底经费<br><span style="font-weight:400;">下限≥100%</span></div><div class="v" id="rndSafeFund">-</div></div>
+              <div class="metric" id="metricRndLikelyFund"><div class="k">反推把握经费<br><span style="font-weight:400;">上限≥100%</span></div><div class="v" id="rndLikelyFund">-</div></div>
             </div>
           </div>
         </div>
@@ -1468,6 +1472,23 @@
       calcRnd();
     }
 
+    // ── 反推「研发经费」──────────────────────────────────────────────
+    // 由手册 §2.2 的成功率公式反解「要投多少钱」：
+    //   base = 有效研发资金 / 推荐资金 × 0.8 + (研发能力 − 能力要求) / 100 × 0.2
+    //   令 base = T，解出  经费 = 推荐资金 × (T − 能力项) / 0.8
+    // 目标 T 取自手册 §2.2「成功率落在 100%~120% 时下期肯定成功」：
+    //   T = 1.4 → 区间下限 = 100%（保底：最坏情况也成）
+    //   T = 1.2 → 区间上限 = 100%（把握：仍要一点运气）
+    // 下限取「推荐资金」—— 手册：投入低于推荐资金下季度一定不成功，钱再多也不能少于它。
+    // 只招推荐人数（研发能力 = 能力要求）时能力项为 0，公式退化成 1.75× / 1.5× 推荐资金。
+    let lastRndFund = { safe: null, likely: null };
+
+    function requiredFundFor(target, recommendFund, ability, required) {
+      if (!(recommendFund > 0)) return null;
+      const abilityTerm = 0.2 * (ability - required) / 100;
+      return Math.max(recommendFund, recommendFund * (target - abilityTerm) / 0.8);
+    }
+
     function calcRnd() {
       const fund = num('rndFund');
       const recommendFund = num('rndCalcRecommendFund');
@@ -1524,6 +1545,29 @@
       setText('rndRecommendedRecruitCost', hasRequired ? fmt(recommendedRecruitCost) : '-');
       setText('rndRecommendedWage', hasRequired ? fmt(recommendedWage) : '-');
 
+      // 反推经费：人员低于基本要求时是「必败」，加钱也没用 → 不给数字，提示先补人
+      const canDerive = hasParams && !underStaff;
+      const fundSafe = canDerive ? requiredFundFor(1.4, recommendFund, ability, required) : null;
+      const fundLikely = canDerive ? requiredFundFor(1.2, recommendFund, ability, required) : null;
+      lastRndFund = { safe: fundSafe, likely: fundLikely };
+
+      const fundHint = underStaff ? '先补足人员' : '-';
+      setText('rndSafeFund', fundSafe != null ? fmt(Math.ceil(fundSafe)) : fundHint);
+      setText('rndLikelyFund', fundLikely != null ? fmt(Math.ceil(fundLikely)) : fundHint);
+      // 用「当前填的资金够不够」上色：够保底=good，只够把握=warn，都不够=bad
+      if (fundSafe != null) {
+        const hitSafe = fund >= fundSafe - 1e-6;
+        const hitLikely = fund >= fundLikely - 1e-6;
+        setMetricState('metricRndSafeFund', hitSafe ? 'good' : 'bad');
+        setMetricState('metricRndLikelyFund', hitLikely ? 'good' : (hitSafe ? 'warn' : 'bad'));
+      } else {
+        setMetricState('metricRndSafeFund', 'warn');
+        setMetricState('metricRndLikelyFund', 'warn');
+      }
+      // 反推不出结果时（项目缺参数 / 人员不达标）把带入按钮置灰，避免点了没反应
+      $('btnRndSafeFund').disabled = fundSafe == null;
+      $('btnRndLikelyFund').disabled = fundLikely == null;
+
       let state;
       if (!hasParams) state = 'warn';
       else if (underFund || underStaff) state = 'bad';
@@ -1533,6 +1577,13 @@
       setMetricState('metricRndMax', state);
       setMetricState('metricRndJudge', state);
       setState('rndJudge', state);
+    }
+
+    function applyRndFund(kind) {
+      const val = lastRndFund[kind];
+      if (val == null) return;
+      $('rndFund').value = Math.ceil(val);
+      calcRnd();
     }
 
     function applyExcelRecommendedResearch() {
